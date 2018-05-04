@@ -1,0 +1,14 @@
+program NGPCEdit;
+
+uses
+  Vcl.Forms,
+  Unit1 in 'Unit1.pas' {Editor};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TEditor, Editor);
+  Application.Run;
+end.
