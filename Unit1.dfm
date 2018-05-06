@@ -2,8 +2,8 @@ object Editor: TEditor
   Left = 0
   Top = 0
   Caption = 'Editor'
-  ClientHeight = 314
-  ClientWidth = 594
+  ClientHeight = 320
+  ClientWidth = 429
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,7 +18,7 @@ object Editor: TEditor
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 594
+    Width = 429
     Height = 25
     Caption = 'ToolBar1'
     TabOrder = 0
@@ -61,18 +61,19 @@ object Editor: TEditor
     object ScalingLabel: TLabel
       Left = 92
       Top = 0
-      Width = 39
+      Width = 53
       Height = 22
       Alignment = taCenter
+      AutoSize = False
       Caption = ' Scaling Factor'
       Color = clBtnFace
       ParentColor = False
       WordWrap = True
     end
     object ScalingSpin: TSpinEdit
-      Left = 131
+      Left = 145
       Top = 0
-      Width = 45
+      Width = 48
       Height = 22
       MaxValue = 40
       MinValue = 1
@@ -81,7 +82,7 @@ object Editor: TEditor
       OnChange = ScalingSpinChange
     end
     object XLabel: TLabel
-      Left = 176
+      Left = 193
       Top = 0
       Width = 64
       Height = 22
@@ -89,7 +90,7 @@ object Editor: TEditor
       Caption = '  Num Tiles X'
     end
     object XSpin: TSpinEdit
-      Left = 240
+      Left = 257
       Top = 0
       Width = 48
       Height = 22
@@ -100,7 +101,7 @@ object Editor: TEditor
       OnChange = XSpinChange
     end
     object YLabel: TLabel
-      Left = 288
+      Left = 305
       Top = 0
       Width = 64
       Height = 22
@@ -108,7 +109,7 @@ object Editor: TEditor
       Caption = '  Num Tiles Y'
     end
     object YSpin: TSpinEdit
-      Left = 352
+      Left = 369
       Top = 0
       Width = 48
       Height = 22
@@ -132,7 +133,10 @@ object Editor: TEditor
     FixedRows = 0
     TabOrder = 1
     OnDrawCell = DrawGrid1DrawCell
-    OnSelectCell = DrawGrid1SelectCell
+    OnMouseDown = DrawGrid1MouseDown
+    OnMouseLeave = DrawGrid1MouseLeave
+    OnMouseMove = DrawGrid1MouseMove
+    OnMouseUp = DrawGrid1MouseUp
   end
   object MainMenu1: TMainMenu
     Left = 480
