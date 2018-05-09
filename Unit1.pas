@@ -94,7 +94,7 @@ procedure TEditor.XSpinChange(Sender: TObject);
 begin
   NumTilesX := XSpin.Value;
   SetLength(TileMap, NumTilesX, NumTilesY);
-  DrawGrid1.ColCount := NumTilesX;
+  DrawGrid1.ColCount := NumTilesX * PIXELS_PER_TILE;;
   if NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING < MAX_GRID_WIDTH then
     DrawGrid1.Width := NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING
   else
@@ -107,9 +107,9 @@ procedure TEditor.YSpinChange(Sender: TObject);
 begin
   NumTilesY := YSpin.Value;
   SetLength(TileMap, NumTilesX, NumTilesY);
-  DrawGrid1.RowCount := NumTilesY;
-  if NumTilesY*PIXELS_PER_TILE*ScalingFactor + YSpin.Value * GRID_PADDING < MAX_GRID_HEIGHT then
-    DrawGrid1.Height := NumTilesY*PIXELS_PER_TILE*ScalingFactor + YSpin.Value * GRID_PADDING
+  DrawGrid1.RowCount := NumTilesY * PIXELS_PER_TILE;
+  if NumTilesY*PIXELS_PER_TILE*ScalingFactor * GRID_PADDING < MAX_GRID_HEIGHT then
+    DrawGrid1.Height := NumTilesY*PIXELS_PER_TILE*ScalingFactor * GRID_PADDING
   else
     DrawGrid1.Height := MAX_GRID_HEIGHT;
   DrawGrid1.Invalidate;
@@ -142,8 +142,8 @@ var TileX, TileY, PixelX, PixelY: Integer;
 begin
   TileX := ACol div PIXELS_PER_TILE;
   TileY := ARow div PIXELS_PER_TILE;
-  PixelX := ACol - TileX;
-  PixelY := ARow - TileY;
+  PixelX := ACol mod PIXELS_PER_TILE;
+  PixelY := ARow mod PIXELS_PER_TILE;
   DrawGrid1.Canvas.Brush.Color := POSSIBLE_COLORS[TileMap[TileX,TileY][PixelX,PixelY]];
   DrawGrid1.Canvas.FillRect(Rect);
 end;
@@ -188,8 +188,8 @@ var TileX, TileY, PixelX, PixelY: Integer;
 begin
   TileX := ACol div PIXELS_PER_TILE;
   TileY := ARow div PIXELS_PER_TILE;
-  PixelX := ACol - TileX;
-  PixelY := ARow - TileY;
+  PixelX := ACol mod PIXELS_PER_TILE;
+  PixelY := ARow mod PIXELS_PER_TILE;
   TileMap[TileX,TileY][PixelX,PixelY] := CurrColor;
   DrawGrid1.Invalidate;
 end;
@@ -214,20 +214,28 @@ begin
   AssignFile(ExportFile, SaveDialog.FileName);
   SaveDialog.Free;
   ReWrite(ExportFile);
-  WriteLn(ExportFile, TAB + 'const unsigned short Tiles[' +
-    IntToStr((NumTilesX div PIXELS_PER_TILE) * (NumTilesY div PIXELS_PER_TILE)) + '][' +
-    IntToStr(PIXELS_PER_TILE) + '] = {');
+  WriteLn(ExportFile,'const unsigned short Tiles[' +
+    IntToStr(NumTilesX * NumTilesY) + '][' + IntToStr(PIXELS_PER_TILE) + '] = {');
   for i := 0 to NumTilesX - 1 do
     for j := 0 to NumTilesY - 1 do
-      for k :=0 to PIXELS_PER_TILE - 1 do
+    begin
+      Write(ExportFile, TAB + TAB + '{');
+      for k := 0 to PIXELS_PER_TILE - 1 do
       begin
+        if k <> 0 then
+           Write(ExportFile, ', ');
         HexString := IntToHex(TileMap[i][j][7][k] or (TileMap[i][j][6][k] shl 2) or
           (TileMap[i][j][5][k] shl 4) or (TileMap[i][j][4][k] shl 6) or (TileMap[i][j][3][k] shl 8) or
           (TileMap[i][j][2][k] shl 10) or (TileMap[i][j][1][k] shl 12) or (TileMap[i][j][0][k] shl 14));
         HexString := copy(HexString,5,4);
-        WriteLn(ExportFile, TAB + TAB + '0x' + HexString + ', ');
+        Write(ExportFile,'0x' + HexString);
       end;
-
+      if j < NumTilesY - 1 then
+        WriteLn(ExportFile, '},')
+      else
+        WriteLn(ExportFile, '}');
+    end;
+  Writeln(ExportFile, '};');
   CloseFile(ExportFile);
 
 end;
