@@ -133,16 +133,17 @@ object Editor: TEditor
     FixedRows = 0
     TabOrder = 1
     OnDrawCell = DrawGrid1DrawCell
-    OnMouseDown = DrawGrid1MouseDown
-    OnMouseLeave = DrawGrid1MouseLeave
-    OnMouseMove = DrawGrid1MouseMove
-    OnMouseUp = DrawGrid1MouseUp
+    OnSelectCell = DrawGrid1SelectCell
   end
   object MainMenu1: TMainMenu
     Left = 480
     Top = 32
     object FileMenu: TMenuItem
       Caption = 'File'
+      object Export: TMenuItem
+        Caption = 'Export'
+        OnClick = ExportClick
+      end
       object Exit1: TMenuItem
         Caption = 'Exit'
         OnClick = Exit1Click

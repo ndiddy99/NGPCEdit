@@ -25,6 +25,7 @@ type
     XSpin: TSpinEdit;
     YLabel: TLabel;
     YSpin: TSpinEdit;
+    Export: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
@@ -33,24 +34,18 @@ type
     procedure Color4Click(Sender: TObject);
     procedure DrawGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
-//    procedure DrawGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
-//      var CanSelect: Boolean);
+    procedure DrawGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
+      var CanSelect: Boolean);
     procedure ScalingSpinChange(Sender: TObject);
     procedure XSpinChange(Sender: TObject);
     procedure YSpinChange(Sender: TObject);
-    procedure DrawGrid1MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure DrawGrid1MouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
-    procedure DrawGrid1MouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure DrawGrid1MouseLeave(Sender: TObject);
+    procedure ExportClick(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
   end;
-
+  TTile = array[0..8, 0..8] of Byte;
 const
   POSSIBLE_COLORS : array [0..3] of TColor = (clWhite, clLtGray, clDkGray, clBlack);
   PIXELS_PER_TILE = 8;
@@ -59,14 +54,15 @@ const
   WINDOW_Y_PADDING = 120;
   MIN_WINDOW_WIDTH = 600;
   MIN_WINDOW_HEIGHT = 379;
-  MAX_GRID_WIDTH = 800;
-  MAX_GRID_HEIGHT = 600;
+  MAX_GRID_WIDTH = 1500;
+  MAX_GRID_HEIGHT = 900;
+  TAB = #9;
 var
   Editor: TEditor;
   CurrColor: Integer; //current color (1=black, 4=white)
   ScalingFactor: Integer;
-  NumPixelsX, NumPixelsY: Integer;
-  PixelMap: array of array of Integer;
+  NumTilesX, NumTilesY: Integer;
+  TileMap: array of array of TTile;
   IsDrawing: Boolean;
 
 implementation
@@ -78,10 +74,10 @@ begin
   CurrColor := 0;
   ScalingFactor := 40;
   ScalingSpin.Value := 40;
-  NumPixelsX := 8;
-  NumPixelsY := 8;
+  NumTilesX := 1;
+  NumTilesY := 1;
   IsDrawing := False;
-  SetLength(PixelMap, NumPixelsX, NumPixelsY);
+  SetLength(TileMap, NumTilesX, NumTilesY);
 end;
 
 
@@ -96,11 +92,11 @@ end;
 
 procedure TEditor.XSpinChange(Sender: TObject);
 begin
-  NumPixelsX := XSpin.Value * PIXELS_PER_TILE;
-  SetLength(PixelMap, NumPixelsX, NumPixelsY);
-  DrawGrid1.ColCount := NumPixelsX;
-  if NumPixelsX*ScalingFactor + XSpin.Value * GRID_PADDING < MAX_GRID_WIDTH then
-    DrawGrid1.Width := NumPixelsX*ScalingFactor + XSpin.Value * GRID_PADDING
+  NumTilesX := XSpin.Value;
+  SetLength(TileMap, NumTilesX, NumTilesY);
+  DrawGrid1.ColCount := NumTilesX;
+  if NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING < MAX_GRID_WIDTH then
+    DrawGrid1.Width := NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING
   else
     DrawGrid1.Width := MAX_GRID_WIDTH;
   DrawGrid1.Invalidate;
@@ -109,16 +105,15 @@ end;
 
 procedure TEditor.YSpinChange(Sender: TObject);
 begin
-  NumPixelsY := YSpin.Value * PIXELS_PER_TILE;
-  SetLength(PixelMap, NumPixelsX, NumPixelsY);
-  DrawGrid1.RowCount := NumPixelsY;
-  if NumPixelsY*ScalingFactor + YSpin.Value * GRID_PADDING < MAX_GRID_HEIGHT then
-    DrawGrid1.Height := NumPixelsY*ScalingFactor + YSpin.Value * GRID_PADDING
+  NumTilesY := YSpin.Value;
+  SetLength(TileMap, NumTilesX, NumTilesY);
+  DrawGrid1.RowCount := NumTilesY;
+  if NumTilesY*PIXELS_PER_TILE*ScalingFactor + YSpin.Value * GRID_PADDING < MAX_GRID_HEIGHT then
+    DrawGrid1.Height := NumTilesY*PIXELS_PER_TILE*ScalingFactor + YSpin.Value * GRID_PADDING
   else
     DrawGrid1.Height := MAX_GRID_HEIGHT;
   DrawGrid1.Invalidate;
   Editor.Height := Max(DrawGrid1.Height + WINDOW_Y_PADDING, MIN_WINDOW_HEIGHT);
-
 end;
 
 procedure TEditor.Color1Click(Sender: TObject);
@@ -143,53 +138,98 @@ end;
 
 procedure TEditor.DrawGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
+var TileX, TileY, PixelX, PixelY: Integer;
 begin
-  DrawGrid1.Canvas.Brush.Color := POSSIBLE_COLORS[PixelMap[ACol,ARow]];
+  TileX := ACol div PIXELS_PER_TILE;
+  TileY := ARow div PIXELS_PER_TILE;
+  PixelX := ACol - TileX;
+  PixelY := ARow - TileY;
+  DrawGrid1.Canvas.Brush.Color := POSSIBLE_COLORS[TileMap[TileX,TileY][PixelX,PixelY]];
   DrawGrid1.Canvas.FillRect(Rect);
 end;
 
-procedure TEditor.DrawGrid1MouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  PixelMap[(X - DrawGrid1.Left) div ScalingFactor, Y div ScalingFactor] := CurrColor;
-  IsDrawing := True;
-  DrawGrid1.Invalidate;
-end;
-
-procedure TEditor.DrawGrid1MouseLeave(Sender: TObject);
-begin
-  IsDrawing := False;
-end;
-
-procedure TEditor.DrawGrid1MouseMove(Sender: TObject; Shift: TShiftState; X,
-  Y: Integer);
-var
-  XArrIndex, YArrIndex: Integer;
-begin
-  XArrIndex := (X - DrawGrid1.Left) div ScalingFactor;
-  YArrIndex := Y div ScalingFactor;
-  if IsDrawing and (XArrIndex < NumPixelsX) and (YArrIndex < NumPixelsY) then
-    begin
-        PixelMap[(X - DrawGrid1.Left) div ScalingFactor, Y div ScalingFactor] := CurrColor;
-        DrawGrid1.Invalidate;
-    end;
-end;
-
-procedure TEditor.DrawGrid1MouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  IsDrawing := False;
-end;
-
-//procedure TEditor.DrawGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
-//  var CanSelect: Boolean);
+//procedure TEditor.DrawGrid1MouseDown(Sender: TObject; Button: TMouseButton;
+//  Shift: TShiftState; X, Y: Integer);
 //begin
-//  PixelMap[ACol,ARow] := CurrColor;
+//  TileMap[((X - DrawGrid1.Left) div ScalingFactor), (Y div ScalingFactor)] := CurrColor;
+//  IsDrawing := True;
 //  DrawGrid1.Invalidate;
 //end;
+//
+//procedure TEditor.DrawGrid1MouseLeave(Sender: TObject);
+//begin
+//  IsDrawing := False;
+//end;
+//
+//procedure TEditor.DrawGrid1MouseMove(Sender: TObject; Shift: TShiftState; X,
+//  Y: Integer);
+//var
+//  XArrIndex, YArrIndex: Integer;
+//begin
+//  XArrIndex := (X - DrawGrid1.Left) div ScalingFactor;
+//  YArrIndex := Y div ScalingFactor;
+//  if IsDrawing and (XArrIndex < NumTilesX) and (YArrIndex < NumTilesY) then
+//    begin
+//        TileMap[((X - DrawGrid1.Left) div ScalingFactor), (Y div ScalingFactor)] := CurrColor;
+//        DrawGrid1.Invalidate;
+//    end;
+//end;
+//
+//procedure TEditor.DrawGrid1MouseUp(Sender: TObject; Button: TMouseButton;
+//  Shift: TShiftState; X, Y: Integer);
+//begin
+//  IsDrawing := False;
+//  DrawGrid1.Invalidate;
+//end;
+
+procedure TEditor.DrawGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
+  var CanSelect: Boolean);
+var TileX, TileY, PixelX, PixelY: Integer;
+begin
+  TileX := ACol div PIXELS_PER_TILE;
+  TileY := ARow div PIXELS_PER_TILE;
+  PixelX := ACol - TileX;
+  PixelY := ARow - TileY;
+  TileMap[TileX,TileY][PixelX,PixelY] := CurrColor;
+  DrawGrid1.Invalidate;
+end;
 
 procedure TEditor.Exit1Click(Sender: TObject);
 begin
   Editor.Close;
 end;
+procedure TEditor.ExportClick(Sender: TObject);
+var
+  SaveDialog: TSaveDialog;
+  ExportFile: TextFile;
+  i, j, k: Integer;
+  HexString: String;
+begin
+  SaveDialog := TSaveDialog.Create(self);
+  SaveDialog.Title := 'Enter a filename to export to';
+  SaveDialog.Filter := 'C source|*.c';
+  SaveDialog.DefaultExt := 'c';
+  SaveDialog.FilterIndex := 1;
+  SaveDialog.Execute;
+  AssignFile(ExportFile, SaveDialog.FileName);
+  SaveDialog.Free;
+  ReWrite(ExportFile);
+  WriteLn(ExportFile, TAB + 'const unsigned short Tiles[' +
+    IntToStr((NumTilesX div PIXELS_PER_TILE) * (NumTilesY div PIXELS_PER_TILE)) + '][' +
+    IntToStr(PIXELS_PER_TILE) + '] = {');
+  for i := 0 to NumTilesX - 1 do
+    for j := 0 to NumTilesY - 1 do
+      for k :=0 to PIXELS_PER_TILE - 1 do
+      begin
+        HexString := IntToHex(TileMap[i][j][7][k] or (TileMap[i][j][6][k] shl 2) or
+          (TileMap[i][j][5][k] shl 4) or (TileMap[i][j][4][k] shl 6) or (TileMap[i][j][3][k] shl 8) or
+          (TileMap[i][j][2][k] shl 10) or (TileMap[i][j][1][k] shl 12) or (TileMap[i][j][0][k] shl 14));
+        HexString := copy(HexString,5,4);
+        WriteLn(ExportFile, TAB + TAB + '0x' + HexString + ', ');
+      end;
+
+  CloseFile(ExportFile);
+
+end;
+
 end.
