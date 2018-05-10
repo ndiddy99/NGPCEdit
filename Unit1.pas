@@ -26,6 +26,9 @@ type
     YLabel: TLabel;
     YSpin: TSpinEdit;
     Export: TMenuItem;
+    DrawButton: TSpeedButton;
+    SelectButton: TSpeedButton;
+    StatusBar1: TStatusBar;
     procedure FormCreate(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
@@ -40,12 +43,15 @@ type
     procedure XSpinChange(Sender: TObject);
     procedure YSpinChange(Sender: TObject);
     procedure ExportClick(Sender: TObject);
+    procedure DrawButtonClick(Sender: TObject);
+    procedure SelectButtonClick(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
   end;
   TTile = array[0..8, 0..8] of Byte;
+  TPalette = array[0..3] of TColor;
 const
   POSSIBLE_COLORS : array [0..3] of TColor = (clWhite, clLtGray, clDkGray, clBlack);
   PIXELS_PER_TILE = 8;
@@ -76,7 +82,7 @@ begin
   ScalingSpin.Value := 40;
   NumTilesX := 1;
   NumTilesY := 1;
-  IsDrawing := False;
+  IsDrawing := True;
   SetLength(TileMap, NumTilesX, NumTilesY);
 end;
 
@@ -148,6 +154,16 @@ begin
   DrawGrid1.Canvas.FillRect(Rect);
 end;
 
+procedure TEditor.DrawButtonClick(Sender: TObject);
+begin
+  IsDrawing := True;
+end;
+
+procedure TEditor.SelectButtonClick(Sender: TObject);
+begin
+  IsDrawing := False;
+end;
+
 //procedure TEditor.DrawGrid1MouseDown(Sender: TObject; Button: TMouseButton;
 //  Shift: TShiftState; X, Y: Integer);
 //begin
@@ -190,8 +206,12 @@ begin
   TileY := ARow div PIXELS_PER_TILE;
   PixelX := ACol mod PIXELS_PER_TILE;
   PixelY := ARow mod PIXELS_PER_TILE;
-  TileMap[TileX,TileY][PixelX,PixelY] := CurrColor;
-  DrawGrid1.Invalidate;
+  if IsDrawing then
+  begin
+    TileMap[TileX,TileY][PixelX,PixelY] := CurrColor;
+    DrawGrid1.Invalidate;
+  end;
+  StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(TileX) + ' Y: ' + IntToStr(TileY);
 end;
 
 procedure TEditor.Exit1Click(Sender: TObject);
