@@ -2,7 +2,9 @@ program NGPCEdit;
 
 uses
   Vcl.Forms,
-  Unit1 in 'Unit1.pas' {Editor};
+  Unit1 in 'Unit1.pas' {Editor},
+  Unit2 in 'Unit2.pas' {ColorPicker},
+  Palette in 'Palette.pas';
 
 {$R *.res}
 
@@ -10,5 +12,6 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TEditor, Editor);
+  Application.CreateForm(TColorPicker, ColorPicker);
   Application.Run;
 end.

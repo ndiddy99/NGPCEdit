@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.FileCtrl, Vcl.Menus,
   Vcl.ToolWin, Vcl.ComCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.Grids,
-  Vcl.Samples.Spin, Math;
+  Vcl.Samples.Spin, Math, Unit2, Palette;
 
 type
   TEditor = class(TForm)
@@ -29,6 +29,10 @@ type
     DrawButton: TSpeedButton;
     SelectButton: TSpeedButton;
     StatusBar1: TStatusBar;
+    PaletteLabel: TLabel;
+    PaletteSpin: TSpinEdit;
+    Palette1: TMenuItem;
+    Edit: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
@@ -45,6 +49,8 @@ type
     procedure ExportClick(Sender: TObject);
     procedure DrawButtonClick(Sender: TObject);
     procedure SelectButtonClick(Sender: TObject);
+    procedure PaletteSpinChange(Sender: TObject);
+    procedure EditClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -53,9 +59,9 @@ type
   TTile = array[0..8, 0..8] of Byte;
   TPalette = array[0..3] of TColor;
 const
-  POSSIBLE_COLORS : array [0..3] of TColor = (clWhite, clLtGray, clDkGray, clBlack);
+  DEFAULT_COLORS : array [0..3] of TColor = (clWhite, clLtGray, clDkGray, clBlack);
   PIXELS_PER_TILE = 8;
-  GRID_PADDING = 12; //num of pixels to pad out grid by
+  GRID_PADDING = 1; //num of pixels to pad out grid by
   WINDOW_X_PADDING = 40;
   WINDOW_Y_PADDING = 120;
   MIN_WINDOW_WIDTH = 600;
@@ -68,7 +74,9 @@ var
   CurrColor: Integer; //current color (1=black, 4=white)
   ScalingFactor: Integer;
   NumTilesX, NumTilesY: Integer;
+  SelectedX, SelectedY: Integer; //selected TILE not pixel
   TileMap: array of array of TTile;
+  PaletteIndexes: array of array of Integer;
   IsDrawing: Boolean;
 
 implementation
@@ -76,6 +84,7 @@ implementation
 {$R *.dfm}
 
 procedure TEditor.FormCreate(Sender: TObject); //init procedure
+var i, j: Integer;
 begin
   CurrColor := 0;
   ScalingFactor := 40;
@@ -84,9 +93,16 @@ begin
   NumTilesY := 1;
   IsDrawing := True;
   SetLength(TileMap, NumTilesX, NumTilesY);
+  SetLength(PaletteIndexes, NumTilesX, NumTilesY);
+  for i := 0 to 15 do
+    for j := 0 to 3 do
+      Palettes[i][j] := DEFAULT_COLORS[j];
 end;
 
-
+procedure TEditor.PaletteSpinChange(Sender: TObject);
+begin
+  PaletteIndexes[SelectedX][SelectedY] := PaletteSpin.Value;
+end;
 
 procedure TEditor.ScalingSpinChange(Sender: TObject);
 begin
@@ -100,26 +116,30 @@ procedure TEditor.XSpinChange(Sender: TObject);
 begin
   NumTilesX := XSpin.Value;
   SetLength(TileMap, NumTilesX, NumTilesY);
+  SetLength(PaletteIndexes, NumTilesX, NumTilesY);
   DrawGrid1.ColCount := NumTilesX * PIXELS_PER_TILE;;
   if NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING < MAX_GRID_WIDTH then
     DrawGrid1.Width := NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING
   else
     DrawGrid1.Width := MAX_GRID_WIDTH;
   DrawGrid1.Invalidate;
-  Editor.Width := Max(DrawGrid1.Width + WINDOW_X_PADDING, MIN_WINDOW_WIDTH);
+  if Self.WindowState <> wsMaximized then
+    Editor.Width := Max(DrawGrid1.Width + WINDOW_X_PADDING, MIN_WINDOW_WIDTH);
 end;
 
 procedure TEditor.YSpinChange(Sender: TObject);
 begin
   NumTilesY := YSpin.Value;
   SetLength(TileMap, NumTilesX, NumTilesY);
+  SetLength(PaletteIndexes, NumTilesX, NumTilesY);
   DrawGrid1.RowCount := NumTilesY * PIXELS_PER_TILE;
   if NumTilesY*PIXELS_PER_TILE*ScalingFactor * GRID_PADDING < MAX_GRID_HEIGHT then
     DrawGrid1.Height := NumTilesY*PIXELS_PER_TILE*ScalingFactor * GRID_PADDING
   else
     DrawGrid1.Height := MAX_GRID_HEIGHT;
   DrawGrid1.Invalidate;
-  Editor.Height := Max(DrawGrid1.Height + WINDOW_Y_PADDING, MIN_WINDOW_HEIGHT);
+  if Self.WindowState <> wsMaximized then
+    Editor.Height := Max(DrawGrid1.Height + WINDOW_Y_PADDING, MIN_WINDOW_HEIGHT);
 end;
 
 procedure TEditor.Color1Click(Sender: TObject);
@@ -150,7 +170,7 @@ begin
   TileY := ARow div PIXELS_PER_TILE;
   PixelX := ACol mod PIXELS_PER_TILE;
   PixelY := ARow mod PIXELS_PER_TILE;
-  DrawGrid1.Canvas.Brush.Color := POSSIBLE_COLORS[TileMap[TileX,TileY][PixelX,PixelY]];
+  DrawGrid1.Canvas.Brush.Color := Palettes[PaletteIndexes[TileX,TileY]][TileMap[TileX,TileY][PixelX,PixelY]];
   DrawGrid1.Canvas.FillRect(Rect);
 end;
 
@@ -204,6 +224,9 @@ var TileX, TileY, PixelX, PixelY: Integer;
 begin
   TileX := ACol div PIXELS_PER_TILE;
   TileY := ARow div PIXELS_PER_TILE;
+  SelectedX := TileX;
+  SelectedY := TileY;
+  PaletteSpin.Value := PaletteIndexes[SelectedX][SelectedY];
   PixelX := ACol mod PIXELS_PER_TILE;
   PixelY := ARow mod PIXELS_PER_TILE;
   if IsDrawing then
@@ -212,6 +235,11 @@ begin
     DrawGrid1.Invalidate;
   end;
   StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(TileX) + ' Y: ' + IntToStr(TileY);
+end;
+
+procedure TEditor.EditClick(Sender: TObject);
+begin
+  ColorPicker.Show;
 end;
 
 procedure TEditor.Exit1Click(Sender: TObject);
@@ -236,8 +264,8 @@ begin
   ReWrite(ExportFile);
   WriteLn(ExportFile,'const unsigned short Tiles[' +
     IntToStr(NumTilesX * NumTilesY) + '][' + IntToStr(PIXELS_PER_TILE) + '] = {');
-  for i := 0 to NumTilesX - 1 do
-    for j := 0 to NumTilesY - 1 do
+  for j := 0 to NumTilesX - 1 do
+    for i := 0 to NumTilesY - 1 do
     begin
       Write(ExportFile, TAB + TAB + '{');
       for k := 0 to PIXELS_PER_TILE - 1 do

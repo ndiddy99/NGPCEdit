@@ -2,8 +2,8 @@ object Editor: TEditor
   Left = 0
   Top = 0
   Caption = 'Editor'
-  ClientHeight = 355
-  ClientWidth = 558
+  ClientHeight = 346
+  ClientWidth = 563
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,16 +18,15 @@ object Editor: TEditor
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 558
+    Width = 563
     Height = 25
-    ButtonHeight = 25
     Caption = 'ToolBar1'
     TabOrder = 0
     object DrawButton: TSpeedButton
       Left = 0
       Top = 0
       Width = 23
-      Height = 25
+      Height = 22
       GroupIndex = 2
       Glyph.Data = {
         46060000424D4606000000000000360400002800000017000000160000000100
@@ -87,7 +86,7 @@ object Editor: TEditor
       Left = 23
       Top = 0
       Width = 23
-      Height = 25
+      Height = 22
       GroupIndex = 2
       Glyph.Data = {
         46060000424D4606000000000000360400002800000017000000160000000100
@@ -147,7 +146,7 @@ object Editor: TEditor
       Left = 46
       Top = 0
       Width = 23
-      Height = 25
+      Height = 22
       GroupIndex = 1
       Caption = '1'
       OnClick = Color1Click
@@ -156,7 +155,7 @@ object Editor: TEditor
       Left = 69
       Top = 0
       Width = 23
-      Height = 25
+      Height = 22
       GroupIndex = 1
       Caption = '2'
       OnClick = Color2Click
@@ -165,7 +164,7 @@ object Editor: TEditor
       Left = 92
       Top = 0
       Width = 23
-      Height = 25
+      Height = 22
       GroupIndex = 1
       Caption = '3'
       OnClick = Color3Click
@@ -174,7 +173,7 @@ object Editor: TEditor
       Left = 115
       Top = 0
       Width = 23
-      Height = 25
+      Height = 22
       GroupIndex = 1
       Caption = '4'
       OnClick = Color4Click
@@ -183,7 +182,7 @@ object Editor: TEditor
       Left = 138
       Top = 0
       Width = 53
-      Height = 25
+      Height = 22
       Alignment = taCenter
       AutoSize = False
       Caption = ' Scaling Factor'
@@ -195,7 +194,7 @@ object Editor: TEditor
       Left = 191
       Top = 0
       Width = 48
-      Height = 25
+      Height = 22
       MaxValue = 40
       MinValue = 1
       TabOrder = 0
@@ -206,7 +205,7 @@ object Editor: TEditor
       Left = 239
       Top = 0
       Width = 64
-      Height = 25
+      Height = 22
       AutoSize = False
       Caption = '  Num Tiles X'
     end
@@ -214,7 +213,7 @@ object Editor: TEditor
       Left = 303
       Top = 0
       Width = 48
-      Height = 25
+      Height = 22
       MaxValue = 20
       MinValue = 1
       TabOrder = 1
@@ -225,7 +224,7 @@ object Editor: TEditor
       Left = 351
       Top = 0
       Width = 64
-      Height = 25
+      Height = 22
       AutoSize = False
       Caption = '  Num Tiles Y'
     end
@@ -233,12 +232,30 @@ object Editor: TEditor
       Left = 415
       Top = 0
       Width = 48
-      Height = 25
+      Height = 22
       MaxValue = 19
       MinValue = 1
       TabOrder = 2
       Value = 1
       OnChange = YSpinChange
+    end
+    object PaletteLabel: TLabel
+      Left = 463
+      Top = 0
+      Width = 40
+      Height = 22
+      Caption = '  Palette'
+    end
+    object PaletteSpin: TSpinEdit
+      Left = 503
+      Top = 0
+      Width = 50
+      Height = 22
+      MaxValue = 15
+      MinValue = 0
+      TabOrder = 3
+      Value = 0
+      OnChange = PaletteSpinChange
     end
   end
   object DrawGrid1: TDrawGrid
@@ -258,17 +275,14 @@ object Editor: TEditor
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 336
-    Width = 558
+    Top = 327
+    Width = 563
     Height = 19
     Panels = <
       item
         Text = 'Selected Tile X: 0 Y: 0'
         Width = 50
       end>
-    ExplicitLeft = 408
-    ExplicitTop = 304
-    ExplicitWidth = 0
   end
   object MainMenu1: TMainMenu
     Left = 480
@@ -282,6 +296,13 @@ object Editor: TEditor
       object Exit1: TMenuItem
         Caption = 'Exit'
         OnClick = Exit1Click
+      end
+    end
+    object Palette1: TMenuItem
+      Caption = 'Palette'
+      object Edit: TMenuItem
+        Caption = 'Edit'
+        OnClick = EditClick
       end
     end
   end

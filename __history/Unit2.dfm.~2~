@@ -1,0 +1,80 @@
+object ColorPicker: TColorPicker
+  Left = 0
+  Top = 0
+  Caption = 'ColorPicker'
+  ClientHeight = 151
+  ClientWidth = 300
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object RedLabel: TLabel
+    Left = 24
+    Top = 24
+    Width = 19
+    Height = 13
+    Caption = 'Red'
+  end
+  object GreenLabel: TLabel
+    Left = 24
+    Top = 64
+    Width = 29
+    Height = 13
+    Caption = 'Green'
+  end
+  object BlueLabel: TLabel
+    Left = 24
+    Top = 112
+    Width = 20
+    Height = 13
+    Caption = 'Blue'
+  end
+  object PreviewLabel: TLabel
+    Left = 176
+    Top = 8
+    Width = 38
+    Height = 13
+    Caption = 'Preview'
+  end
+  object Image1: TImage
+    Left = 176
+    Top = 27
+    Width = 105
+    Height = 105
+  end
+  object RedSpin: TSpinEdit
+    Left = 64
+    Top = 21
+    Width = 49
+    Height = 22
+    MaxValue = 15
+    MinValue = 0
+    TabOrder = 0
+    Value = 0
+  end
+  object GreenSpin: TSpinEdit
+    Left = 64
+    Top = 61
+    Width = 49
+    Height = 22
+    MaxValue = 15
+    MinValue = 0
+    TabOrder = 1
+    Value = 0
+  end
+  object BlueSpin: TSpinEdit
+    Left = 64
+    Top = 109
+    Width = 49
+    Height = 22
+    MaxValue = 15
+    MinValue = 0
+    TabOrder = 2
+    Value = 0
+  end
+end

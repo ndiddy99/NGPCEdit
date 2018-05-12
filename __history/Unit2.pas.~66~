@@ -1,0 +1,99 @@
+unit Unit2;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls,
+  Vcl.Samples.Spin, Vcl.ComCtrls, Palette;
+
+type
+  TColorPicker = class(TForm)
+    RedLabel: TLabel;
+    RedSpin: TSpinEdit;
+    GreenLabel: TLabel;
+    BlueLabel: TLabel;
+    GreenSpin: TSpinEdit;
+    BlueSpin: TSpinEdit;
+    PreviewLabel: TLabel;
+    Image1: TImage;
+    PaletteLabel: TLabel;
+    PaletteSpin: TSpinEdit;
+    ColorLabel: TLabel;
+    ColorSpin: TSpinEdit;
+    procedure RedSpinChange(Sender: TObject);
+    procedure GreenSpinChange(Sender: TObject);
+    procedure BlueSpinChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure PaletteSpinChange(Sender: TObject);
+    procedure ColorSpinChange(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  ColorPicker: TColorPicker;
+
+implementation
+
+
+{$R *.dfm}
+
+procedure TColorPicker.BlueSpinChange(Sender: TObject);
+begin
+  //multiply by 16 because ngpc palette vals are from 0-15 while delphi vals are from 0-255
+  Image1.Canvas.Brush.Color := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
+  Palettes[PaletteSpin.Value][ColorSpin.Value] := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
+  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+end;
+
+procedure TColorPicker.ColorSpinChange(Sender: TObject);
+var color: TColor;
+begin
+  color := Palettes[PaletteSpin.Value][ColorSpin.Value];
+  RedSpin.Value := GetRValue(ColorToRGB(color)) div 16;
+  GreenSpin.Value := GetGValue(ColorToRGB(color)) div 16;
+  BlueSpin.Value := GetBValue(ColorToRGB(color)) div 16;
+  Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
+  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+end;
+
+procedure TColorPicker.FormCreate(Sender: TObject);
+begin
+  PaletteSpin.Value := 0;
+  ColorSpin.Value := 1;
+//  RedSpin.Value := GetRValue(ColorToRGB(Palettes[PaletteSpin.Value][ColorSpin.Value])) div 16;
+//  GreenSpin.Value := GetGValue(ColorToRGB(Palettes[PaletteSpin.Value][ColorSpin.Value])) div 16;
+//  BlueSpin.Value := GetBValue(ColorToRGB(Palettes[PaletteSpin.Value][ColorSpin.Value])) div 16;
+  ShowMessage(IntToStr(Image1.Canvas.Brush.Color));
+  Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
+  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+end;
+
+procedure TColorPicker.GreenSpinChange(Sender: TObject);
+begin
+  Image1.Canvas.Brush.Color := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
+  Palettes[PaletteSpin.Value][ColorSpin.Value] := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
+  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+end;
+
+procedure TColorPicker.PaletteSpinChange(Sender: TObject);
+begin
+  PaletteSpin.Value := PaletteSpin.Value;
+  RedSpin.Value := GetRValue(ColorToRGB(Palettes[PaletteSpin.Value][ColorSpin.Value])) div 16;
+  GreenSpin.Value := GetGValue(ColorToRGB(Palettes[PaletteSpin.Value][ColorSpin.Value])) div 16;
+  BlueSpin.Value := GetBValue(ColorToRGB(Palettes[PaletteSpin.Value][ColorSpin.Value])) div 16;
+  Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
+  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+end;
+
+procedure TColorPicker.RedSpinChange(Sender: TObject);
+begin
+  Image1.Canvas.Brush.Color := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
+  Palettes[PaletteSpin.Value][ColorSpin.Value] := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
+  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+end;
+
+end.

@@ -1,0 +1,13 @@
+unit Palette;
+
+interface
+uses
+  Vcl.Graphics;
+type
+  TColorPicker = class(TForm)
+    TPalette = array[0..3] of TColor;
+public
+  Palettes: array [0..15] of TPalette;
+implementation
+
+end.
