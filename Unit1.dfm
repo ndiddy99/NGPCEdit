@@ -289,9 +289,16 @@ object Editor: TEditor
     Top = 32
     object FileMenu: TMenuItem
       Caption = 'File'
+      object Import: TMenuItem
+        Caption = 'Import BMP'
+      end
       object Export: TMenuItem
-        Caption = 'Export'
+        Caption = 'Export Image'
         OnClick = ExportClick
+      end
+      object ExportPalette1: TMenuItem
+        Caption = 'Export Palette'
+        OnClick = ExportPalette1Click
       end
       object Exit1: TMenuItem
         Caption = 'Exit'

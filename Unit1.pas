@@ -33,6 +33,8 @@ type
     PaletteSpin: TSpinEdit;
     Palette1: TMenuItem;
     Edit: TMenuItem;
+    Import: TMenuItem;
+    ExportPalette1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
@@ -51,6 +53,7 @@ type
     procedure SelectButtonClick(Sender: TObject);
     procedure PaletteSpinChange(Sender: TObject);
     procedure EditClick(Sender: TObject);
+    procedure ExportPalette1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -64,11 +67,12 @@ const
   GRID_PADDING = 1; //num of pixels to pad out grid by
   WINDOW_X_PADDING = 40;
   WINDOW_Y_PADDING = 120;
-  MIN_WINDOW_WIDTH = 600;
+  MIN_WINDOW_WIDTH = 725;
   MIN_WINDOW_HEIGHT = 379;
   MAX_GRID_WIDTH = 1500;
   MAX_GRID_HEIGHT = 900;
   TAB = #9;
+  NEWLINE = #13#10;
 var
   Editor: TEditor;
   CurrColor: Integer; //current color (1=black, 4=white)
@@ -286,6 +290,45 @@ begin
   Writeln(ExportFile, '};');
   CloseFile(ExportFile);
 
+end;
+
+procedure TEditor.ExportPalette1Click(Sender: TObject);
+var
+  SaveDialog: TSaveDialog;
+  ExportFile: TextFile;
+  i: Integer;
+  Color: TColor;
+begin
+  SaveDialog := TSaveDialog.Create(self);
+  SaveDialog.Title := 'Enter a filename to export to';
+  SaveDialog.Filter := 'C source|*.c';
+  SaveDialog.DefaultExt := 'c';
+  SaveDialog.FilterIndex := 1;
+  SaveDialog.Execute;
+  AssignFile(ExportFile, SaveDialog.FileName);
+  SaveDialog.Free;
+  ReWrite(ExportFile);
+  WriteLn(ExportFile,'const u16 palettes[15][3] = {');
+  for i := 0 to 15 do
+  begin
+      if i <> 0 then
+        Write(ExportFile, ', ' + NEWLINE);
+      Write(ExportFile, TAB + '{');
+      Color := Palettes[i][1]; //don't write color 0 because it's transparent
+      Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
+        IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
+        IntToStr(GetBValue(ColorToRGB(Color)) div 16) + '), ');
+      Color := Palettes[i][2];
+      Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
+        IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
+        IntToStr(GetBValue(ColorToRGB(Color)) div 16) + '), ');
+      Color := Palettes[i][3];
+      Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
+        IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
+        IntToStr(GetBValue(ColorToRGB(Color)) div 16) + ')}');
+  end;
+  Write(ExportFile, NEWLINE + '};');
+  CloseFile(ExportFile);
 end;
 
 end.
