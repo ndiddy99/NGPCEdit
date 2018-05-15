@@ -54,6 +54,8 @@ type
     procedure PaletteSpinChange(Sender: TObject);
     procedure EditClick(Sender: TObject);
     procedure ExportPalette1Click(Sender: TObject);
+    procedure ImportClick(Sender: TObject);
+    procedure SetPixelValue(x, y: Integer; value: Byte);
   private
     { Private declarations }
   public
@@ -91,11 +93,12 @@ procedure TEditor.FormCreate(Sender: TObject); //init procedure
 var i, j: Integer;
 begin
   CurrColor := 0;
-  ScalingFactor := 40;
-  ScalingSpin.Value := 40;
+  ScalingFactor := 3;
+  ScalingSpin.Value := 3;
   NumTilesX := 1;
   NumTilesY := 1;
-  IsDrawing := True;
+  IsDrawing := False;
+  SelectButton.Down := True;
   SetLength(TileMap, NumTilesX, NumTilesY);
   SetLength(PaletteIndexes, NumTilesX, NumTilesY);
   for i := 0 to 15 do
@@ -103,9 +106,52 @@ begin
       Palettes[i][j] := DEFAULT_COLORS[j];
 end;
 
+procedure TEditor.ImportClick(Sender: TObject);
+var
+ OpenDialog: TOpenDialog;
+ Image: TBitmap;
+ Line: pByteArray;
+ i, j: Integer;
+begin
+  OpenDialog := TOpenDialog.Create(self);
+  OpenDialog.Options := [ofFileMustExist];
+  OpenDialog.Title := 'Find an image to import from';
+  OpenDialog.Filter := '8-bit greyscale bitmap|*.bmp';
+  OpenDialog.FilterIndex := 1;
+  if OpenDialog.Execute then
+  begin
+    Image := TBitmap.Create;
+    Image.LoadFromFile(OpenDialog.FileName);
+    XSpin.Value := Image.Width div PIXELS_PER_TILE;
+    YSpin.Value := Image.Height div PIXELS_PER_TILE;
+    for i := 0 to Image.Height - 1 do
+    begin
+      Line := pByteArray(Image.ScanLine[i]);
+      for j := 0 to Image.Width - 1 do
+      begin
+        if Line[j] < 64 then
+          SetPixelValue(j, i, 3)
+        else if Line[j] < 128 then
+          SetPixelValue(j, i, 2)
+        else if Line[j] < 192 then
+          SetPixelValue(j, i, 1)
+        else
+          SetPixelValue(j, i, 0);
+      end;
+    end;
+  end;
+end;
+
+//makes TileMap addressable like a 2d array of pixels
+procedure TEditor.SetPixelValue(x, y: Integer; value: Byte);
+begin
+  TileMap[x div PIXELS_PER_TILE][y div PIXELS_PER_TILE][x mod PIXELS_PER_TILE][y mod PIXELS_PER_TILE] := value;
+end;
+
 procedure TEditor.PaletteSpinChange(Sender: TObject);
 begin
   PaletteIndexes[SelectedX][SelectedY] := PaletteSpin.Value;
+  DrawGrid1.Invalidate;
 end;
 
 procedure TEditor.ScalingSpinChange(Sender: TObject);
@@ -117,11 +163,25 @@ begin
 end;
 
 procedure TEditor.XSpinChange(Sender: TObject);
+var
+  i, j: Integer;
+  BlankTile: TTile;
 begin
+  SetLength(TileMap, XSpin.Value, NumTilesY);
+  if NumTilesX < XSpin.Value then
+  begin
+    for i := 0 to PIXELS_PER_TILE - 1 do
+      for j := 0 to PIXELS_PER_TILE - 1 do
+        BlankTile[i][j] := 0;
+
+    for j := 0 to NumTilesY - 1 do
+      for i := NumTilesX to XSpin.Value - 1 do
+        TileMap[i][j] := BlankTile;
+  end;
   NumTilesX := XSpin.Value;
-  SetLength(TileMap, NumTilesX, NumTilesY);
+  //SetLength(TileMap, NumTilesX, NumTilesY);
   SetLength(PaletteIndexes, NumTilesX, NumTilesY);
-  DrawGrid1.ColCount := NumTilesX * PIXELS_PER_TILE;;
+  DrawGrid1.ColCount := NumTilesX * PIXELS_PER_TILE;
   if NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING < MAX_GRID_WIDTH then
     DrawGrid1.Width := NumTilesX*PIXELS_PER_TILE*ScalingFactor + XSpin.Value * GRID_PADDING
   else
@@ -132,9 +192,22 @@ begin
 end;
 
 procedure TEditor.YSpinChange(Sender: TObject);
+var
+  i, j: Integer;
+  BlankTile: TTile;
 begin
+  SetLength(TileMap, NumTilesX, YSpin.Value);
+  if NumTilesY < YSpin.Value then
+  begin
+    for i := 0 to PIXELS_PER_TILE - 1 do
+      for j := 0 to PIXELS_PER_TILE - 1 do
+        BlankTile[i][j] := 0;
+
+    for j := NumTilesY to YSpin.Value - 1 do
+      for i := 0 to NumTilesX - 1 do
+        TileMap[i][j] := BlankTile;
+  end;
   NumTilesY := YSpin.Value;
-  SetLength(TileMap, NumTilesX, NumTilesY);
   SetLength(PaletteIndexes, NumTilesX, NumTilesY);
   DrawGrid1.RowCount := NumTilesY * PIXELS_PER_TILE;
   if NumTilesY*PIXELS_PER_TILE*ScalingFactor * GRID_PADDING < MAX_GRID_HEIGHT then
@@ -262,33 +335,37 @@ begin
   SaveDialog.Filter := 'C source|*.c';
   SaveDialog.DefaultExt := 'c';
   SaveDialog.FilterIndex := 1;
-  SaveDialog.Execute;
-  AssignFile(ExportFile, SaveDialog.FileName);
-  SaveDialog.Free;
-  ReWrite(ExportFile);
-  WriteLn(ExportFile,'const unsigned short Tiles[' +
-    IntToStr(NumTilesX * NumTilesY) + '][' + IntToStr(PIXELS_PER_TILE) + '] = {');
-  for j := 0 to NumTilesX - 1 do
-    for i := 0 to NumTilesY - 1 do
-    begin
-      Write(ExportFile, TAB + TAB + '{');
-      for k := 0 to PIXELS_PER_TILE - 1 do
+  if SaveDialog.Execute then
+  begin
+    AssignFile(ExportFile, SaveDialog.FileName);
+    SaveDialog.Free;
+    ReWrite(ExportFile);
+    WriteLn(ExportFile,'const unsigned short Tiles[' +
+      IntToStr(NumTilesX * NumTilesY) + '][' + IntToStr(PIXELS_PER_TILE) + '] = {');
+    for j := 0 to NumTilesY - 1 do
+      for i := 0 to NumTilesX - 1 do
       begin
-        if k <> 0 then
-           Write(ExportFile, ', ');
-        HexString := IntToHex(TileMap[i][j][7][k] or (TileMap[i][j][6][k] shl 2) or
-          (TileMap[i][j][5][k] shl 4) or (TileMap[i][j][4][k] shl 6) or (TileMap[i][j][3][k] shl 8) or
-          (TileMap[i][j][2][k] shl 10) or (TileMap[i][j][1][k] shl 12) or (TileMap[i][j][0][k] shl 14));
-        HexString := copy(HexString,5,4);
-        Write(ExportFile,'0x' + HexString);
+        Write(ExportFile, TAB + TAB + '{');
+        for k := 0 to PIXELS_PER_TILE - 1 do
+        begin
+          if k <> 0 then
+             Write(ExportFile, ', ');
+          HexString := IntToHex(TileMap[i][j][7][k] or (TileMap[i][j][6][k] shl 2) or
+            (TileMap[i][j][5][k] shl 4) or (TileMap[i][j][4][k] shl 6) or (TileMap[i][j][3][k] shl 8) or
+            (TileMap[i][j][2][k] shl 10) or (TileMap[i][j][1][k] shl 12) or (TileMap[i][j][0][k] shl 14));
+          HexString := copy(HexString,5,4);
+          Write(ExportFile,'0x' + HexString);
+        end;
+        if (i < NumTilesY-1) or (j < NumTilesX-1) then
+          WriteLn(ExportFile, '},')
+        else
+          WriteLn(ExportFile, '}');
       end;
-      if j < NumTilesY - 1 then
-        WriteLn(ExportFile, '},')
-      else
-        WriteLn(ExportFile, '}');
-    end;
-  Writeln(ExportFile, '};');
-  CloseFile(ExportFile);
+    Writeln(ExportFile, '};');
+    CloseFile(ExportFile);
+  end
+  else
+    SaveDialog.Free;
 
 end;
 
@@ -304,31 +381,35 @@ begin
   SaveDialog.Filter := 'C source|*.c';
   SaveDialog.DefaultExt := 'c';
   SaveDialog.FilterIndex := 1;
-  SaveDialog.Execute;
-  AssignFile(ExportFile, SaveDialog.FileName);
-  SaveDialog.Free;
-  ReWrite(ExportFile);
-  WriteLn(ExportFile,'const u16 palettes[15][3] = {');
-  for i := 0 to 15 do
+  if SaveDialog.Execute then
   begin
-      if i <> 0 then
-        Write(ExportFile, ', ' + NEWLINE);
-      Write(ExportFile, TAB + '{');
-      Color := Palettes[i][1]; //don't write color 0 because it's transparent
-      Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
-        IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
-        IntToStr(GetBValue(ColorToRGB(Color)) div 16) + '), ');
-      Color := Palettes[i][2];
-      Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
-        IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
-        IntToStr(GetBValue(ColorToRGB(Color)) div 16) + '), ');
-      Color := Palettes[i][3];
-      Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
-        IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
-        IntToStr(GetBValue(ColorToRGB(Color)) div 16) + ')}');
-  end;
-  Write(ExportFile, NEWLINE + '};');
-  CloseFile(ExportFile);
+    AssignFile(ExportFile, SaveDialog.FileName);
+    SaveDialog.Free;
+    ReWrite(ExportFile);
+    WriteLn(ExportFile,'const u16 palettes[15][3] = {');
+    for i := 0 to 15 do
+    begin
+        if i <> 0 then
+          Write(ExportFile, ', ' + NEWLINE);
+        Write(ExportFile, TAB + '{');
+        Color := Palettes[i][1]; //don't write color 0 because it's transparent
+        Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
+          IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
+          IntToStr(GetBValue(ColorToRGB(Color)) div 16) + '), ');
+        Color := Palettes[i][2];
+        Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
+          IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
+          IntToStr(GetBValue(ColorToRGB(Color)) div 16) + '), ');
+        Color := Palettes[i][3];
+        Write(ExportFile, 'RGB(' + IntToStr(GetRValue(ColorToRGB(Color)) div 16) + ', ' +
+          IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
+          IntToStr(GetBValue(ColorToRGB(Color)) div 16) + ')}');
+    end;
+    Write(ExportFile, NEWLINE + '};');
+    CloseFile(ExportFile);
+  end
+  else
+    SaveDialog.Free
 end;
 
 end.

@@ -290,7 +290,8 @@ object Editor: TEditor
     object FileMenu: TMenuItem
       Caption = 'File'
       object Import: TMenuItem
-        Caption = 'Import BMP'
+        Caption = 'Import Grayscale BMP'
+        OnClick = ImportClick
       end
       object Export: TMenuItem
         Caption = 'Export Image'
