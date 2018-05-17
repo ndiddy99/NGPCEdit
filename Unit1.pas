@@ -14,10 +14,10 @@ type
     FileMenu: TMenuItem;
     Exit1: TMenuItem;
     ToolBar1: TToolBar;
+    Color0: TSpeedButton;
     Color1: TSpeedButton;
     Color2: TSpeedButton;
     Color3: TSpeedButton;
-    Color4: TSpeedButton;
     ScalingSpin: TSpinEdit;
     ScalingLabel: TLabel;
     XLabel: TLabel;
@@ -37,14 +37,10 @@ type
     TilesImage: TImage;
     procedure FormCreate(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
+    procedure Color0Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
     procedure Color2Click(Sender: TObject);
     procedure Color3Click(Sender: TObject);
-    procedure Color4Click(Sender: TObject);
-    procedure DrawGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-      Rect: TRect; State: TGridDrawState);
-    procedure DrawGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
-      var CanSelect: Boolean);
     procedure ScalingSpinChange(Sender: TObject);
     procedure XSpinChange(Sender: TObject);
     procedure YSpinChange(Sender: TObject);
@@ -98,8 +94,6 @@ procedure TEditor.FormCreate(Sender: TObject); //init procedure
 var i, j: Integer;
 begin
   CurrColor := 0;
-  ScalingFactor := 2;
-  ScalingSpin.Value := 2;
   NumTilesX := 20;
   NumTilesY := 19;
   IsDrawing := False;
@@ -110,6 +104,9 @@ begin
   for i := 0 to 15 do
     for j := 0 to 3 do
       Palettes[i][j] := DEFAULT_COLORS[j];
+  ScalingFactor := 2;
+  ScalingSpin.Value := 2;
+
 end;
 
 procedure TEditor.TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
@@ -133,7 +130,7 @@ begin
 end;
 
 procedure TEditor.Redraw();
-var i, j, k, l: Integer;
+var i, j: Integer;
 begin
   TilesImage.Canvas.Brush.Color := clWhite;
   TilesImage.Canvas.FillRect(Rect(0,0,TilesImage.Width,TilesImage.Height));
@@ -210,9 +207,8 @@ end;
 procedure TEditor.ScalingSpinChange(Sender: TObject);
 begin
   ScalingFactor := ScalingSpin.Value;
-  TilesImage.Width := Max(NumTilesX * PIXELS_PER_TILE * ScalingFactor, TilesImage.Width);
-  TilesImage.Height := Max(NumTilesY * PIXELS_PER_TILE * ScalingFactor, TilesImage.Height);
- //ShowMessage(IntToStr(TilesImage.Height));
+  TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor;
+  TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor;
   Redraw();
 end;
 
@@ -233,9 +229,7 @@ begin
         TileMap[i][j] := BlankTile;
   end;
   NumTilesX := XSpin.Value;
-  //SetLength(TileMap, NumTilesX, NumTilesY);
   SetLength(PaletteIndexes, NumTilesX, NumTilesY);
- // DrawGrid1.ColCount := NumTilesX * PIXELS_PER_TILE;
   if NumTilesX*PIXELS_PER_TILE*ScalingFactor < MAX_GRID_WIDTH then
     TilesImage.Width := NumTilesX*PIXELS_PER_TILE*ScalingFactor
   else
@@ -270,36 +264,24 @@ begin
     Editor.Height := Max(TilesImage.Height + WINDOW_Y_PADDING, MIN_WINDOW_HEIGHT);
 end;
 
-procedure TEditor.Color1Click(Sender: TObject);
+procedure TEditor.Color0Click(Sender: TObject);
 begin
   CurrColor := 0;
 end;
 
-procedure TEditor.Color2Click(Sender: TObject);
+procedure TEditor.Color1Click(Sender: TObject);
 begin
   CurrColor := 1;
 end;
 
-procedure TEditor.Color3Click(Sender: TObject);
+procedure TEditor.Color2Click(Sender: TObject);
 begin
   CurrColor := 2;
 end;
 
-procedure TEditor.Color4Click(Sender: TObject);
+procedure TEditor.Color3Click(Sender: TObject);
 begin
   CurrColor := 3;
-end;
-
-procedure TEditor.DrawGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-  Rect: TRect; State: TGridDrawState);
-var TileX, TileY, PixelX, PixelY: Integer;
-begin
-  TileX := ACol div PIXELS_PER_TILE;
-  TileY := ARow div PIXELS_PER_TILE;
-  PixelX := ACol mod PIXELS_PER_TILE;
-  PixelY := ARow mod PIXELS_PER_TILE;
-//  DrawGrid1.Canvas.Brush.Color := Palettes[PaletteIndexes[TileX,TileY]][TileMap[TileX,TileY][PixelX,PixelY]];
-//  DrawGrid1.Canvas.FillRect(Rect);
 end;
 
 procedure TEditor.DrawButtonClick(Sender: TObject);
@@ -310,59 +292,6 @@ end;
 procedure TEditor.SelectButtonClick(Sender: TObject);
 begin
   IsDrawing := False;
-end;
-
-//procedure TEditor.DrawGrid1MouseDown(Sender: TObject; Button: TMouseButton;
-//  Shift: TShiftState; X, Y: Integer);
-//begin
-//  TileMap[((X - DrawGrid1.Left) div ScalingFactor), (Y div ScalingFactor)] := CurrColor;
-//  IsDrawing := True;
-//  DrawGrid1.Invalidate;
-//end;
-//
-//procedure TEditor.DrawGrid1MouseLeave(Sender: TObject);
-//begin
-//  IsDrawing := False;
-//end;
-//
-//procedure TEditor.DrawGrid1MouseMove(Sender: TObject; Shift: TShiftState; X,
-//  Y: Integer);
-//var
-//  XArrIndex, YArrIndex: Integer;
-//begin
-//  XArrIndex := (X - DrawGrid1.Left) div ScalingFactor;
-//  YArrIndex := Y div ScalingFactor;
-//  if IsDrawing and (XArrIndex < NumTilesX) and (YArrIndex < NumTilesY) then
-//    begin
-//        TileMap[((X - DrawGrid1.Left) div ScalingFactor), (Y div ScalingFactor)] := CurrColor;
-//        DrawGrid1.Invalidate;
-//    end;
-//end;
-//
-//procedure TEditor.DrawGrid1MouseUp(Sender: TObject; Button: TMouseButton;
-//  Shift: TShiftState; X, Y: Integer);
-//begin
-//  IsDrawing := False;
-//  DrawGrid1.Invalidate;
-//end;
-
-procedure TEditor.DrawGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
-  var CanSelect: Boolean);
-var TileX, TileY, PixelX, PixelY: Integer;
-begin
-  TileX := ACol div PIXELS_PER_TILE;
-  TileY := ARow div PIXELS_PER_TILE;
-  SelectedX := TileX;
-  SelectedY := TileY;
-  PaletteSpin.Value := PaletteIndexes[SelectedX][SelectedY];
-  PixelX := ACol mod PIXELS_PER_TILE;
-  PixelY := ARow mod PIXELS_PER_TILE;
-  if IsDrawing then
-  begin
-    TileMap[TileX,TileY][PixelX,PixelY] := CurrColor;
-   // DrawGrid1.Invalidate;
-  end;
-  StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(TileX) + ' Y: ' + IntToStr(TileY);
 end;
 
 procedure TEditor.EditClick(Sender: TObject);
@@ -424,7 +353,7 @@ procedure TEditor.ExportPalette1Click(Sender: TObject);
 var
   SaveDialog: TSaveDialog;
   ExportFile: TextFile;
-  i: Integer;
+  i, j: Integer;
   Color: TColor;
 begin
   SaveDialog := TSaveDialog.Create(self);
@@ -456,7 +385,23 @@ begin
           IntToStr(GetGValue(ColorToRGB(Color)) div 16) + ', ' +
           IntToStr(GetBValue(ColorToRGB(Color)) div 16) + ')}');
     end;
-    Write(ExportFile, NEWLINE + '};');
+    WriteLn(ExportFile, NEWLINE + '};');
+    WriteLn(ExportFile, 'const u8 paletteIndexes[' + IntToStr(NumTilesX) + '][' + IntToStr(NumTilesY) + '] = {');
+    for j := 0 to NumTilesY - 1 do
+    begin
+      Write(ExportFile, TAB + '{');
+      for i := 0 to NumTilesX - 1 do
+      begin
+        if i <> 0 then
+          Write(ExportFile, ', ');
+        Write(ExportFile, IntToStr(PaletteIndexes[i][j]));
+      end;
+      if j <> NumTilesY - 1 then
+        Write(ExportFile, '},' + NEWLINE)
+      else
+        Write(ExportFile, '}' + NEWLINE + '};');
+    end;
+
     CloseFile(ExportFile);
   end
   else

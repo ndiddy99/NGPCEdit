@@ -18,8 +18,8 @@ object Editor: TEditor
   object TilesImage: TImage
     Left = 8
     Top = 31
-    Width = 320
-    Height = 324
+    Width = 640
+    Height = 608
     OnMouseDown = TilesImageMouseDown
   end
   object ToolBar1: TToolBar
@@ -149,8 +149,17 @@ object Editor: TEditor
         FFFFFFFFFFFFFFFFFF00}
       OnClick = SelectButtonClick
     end
-    object Color1: TSpeedButton
+    object Color0: TSpeedButton
       Left = 46
+      Top = 0
+      Width = 23
+      Height = 22
+      GroupIndex = 1
+      Caption = '0'
+      OnClick = Color0Click
+    end
+    object Color1: TSpeedButton
+      Left = 69
       Top = 0
       Width = 23
       Height = 22
@@ -159,7 +168,7 @@ object Editor: TEditor
       OnClick = Color1Click
     end
     object Color2: TSpeedButton
-      Left = 69
+      Left = 92
       Top = 0
       Width = 23
       Height = 22
@@ -168,22 +177,13 @@ object Editor: TEditor
       OnClick = Color2Click
     end
     object Color3: TSpeedButton
-      Left = 92
+      Left = 115
       Top = 0
       Width = 23
       Height = 22
       GroupIndex = 1
       Caption = '3'
       OnClick = Color3Click
-    end
-    object Color4: TSpeedButton
-      Left = 115
-      Top = 0
-      Width = 23
-      Height = 22
-      GroupIndex = 1
-      Caption = '4'
-      OnClick = Color4Click
     end
     object ScalingLabel: TLabel
       Left = 138
