@@ -2,7 +2,7 @@ object Editor: TEditor
   Left = 0
   Top = 0
   Caption = 'Editor'
-  ClientHeight = 346
+  ClientHeight = 384
   ClientWidth = 563
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,6 +15,13 @@ object Editor: TEditor
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
+  object TilesImage: TImage
+    Left = 8
+    Top = 31
+    Width = 320
+    Height = 324
+    OnMouseDown = TilesImageMouseDown
+  end
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
@@ -258,24 +265,9 @@ object Editor: TEditor
       OnChange = PaletteSpinChange
     end
   end
-  object DrawGrid1: TDrawGrid
-    Left = 8
-    Top = 31
-    Width = 273
-    Height = 278
-    ColCount = 8
-    DefaultColWidth = 32
-    DefaultRowHeight = 32
-    FixedCols = 0
-    RowCount = 8
-    FixedRows = 0
-    TabOrder = 1
-    OnDrawCell = DrawGrid1DrawCell
-    OnSelectCell = DrawGrid1SelectCell
-  end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 327
+    Top = 365
     Width = 563
     Height = 19
     Panels = <
