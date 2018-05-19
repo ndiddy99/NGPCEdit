@@ -74,6 +74,8 @@
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -89,15 +91,19 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="Unit1.pas">
+        <DCCReference Include="Main.pas">
             <Form>Editor</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="Unit2.pas">
+        <DCCReference Include="Color.pas">
             <Form>ColorPicker</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="Palette.pas"/>
+        <DCCReference Include="Common.pas"/>
+        <DCCReference Include="BGColorForm.pas">
+            <Form>BGColor</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

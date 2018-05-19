@@ -2,12 +2,21 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>2018/05/02 13:55:12.000.113,=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2018/05/02 13:59:13.000.572,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit1.pas</Transaction>
-    <Transaction>2018/05/02 13:59:13.000.572,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit1.dfm</Transaction>
-    <Transaction>2018/05/02 13:59:14.000.893,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\Project2.dproj=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Project2.dproj</Transaction>
-    <Transaction>2018/05/02 20:42:12.000.272,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\NGPCEdit.dproj=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Project2.dproj</Transaction>
+    <Transaction>2018/05/02 13:59:13.000.572,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit1.dfm=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2018/05/02 13:59:13.000.572,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit1.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2018/05/02 13:59:14.000.893,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Project2.dproj=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\Project2.dproj</Transaction>
+    <Transaction>2018/05/02 20:42:12.000.272,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Project2.dproj=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\NGPCEdit.dproj</Transaction>
     <Transaction>2018/05/11 11:06:09.000.754,=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit2.pas</Transaction>
     <Transaction>2018/05/11 12:35:42.000.764,=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit3.pas</Transaction>
-    <Transaction>2018/05/11 12:35:53.000.814,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Palette.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit3.pas</Transaction>
+    <Transaction>2018/05/11 12:35:53.000.814,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit3.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Palette.pas</Transaction>
+    <Transaction>2018/05/19 10:28:18.031,=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit3.pas</Transaction>
+    <Transaction>2018/05/19 10:28:39.664,=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit3.pas</Transaction>
+    <Transaction>2018/05/19 10:29:32.348,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Main.dfm=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit1.dfm</Transaction>
+    <Transaction>2018/05/19 10:29:32.348,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Main.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit1.pas</Transaction>
+    <Transaction>2018/05/19 10:29:58.264,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Color.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit2.pas</Transaction>
+    <Transaction>2018/05/19 10:29:58.264,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Color.dfm=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit2.dfm</Transaction>
+    <Transaction>2018/05/19 10:30:11.108,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\BGColorForm.dfm=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit3.dfm</Transaction>
+    <Transaction>2018/05/19 10:30:11.108,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\BGColorForm.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Unit3.pas</Transaction>
+    <Transaction>2018/05/19 14:10:52.626,C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Common.pas=C:\Users\Nathan\Documents\Embarcadero\Studio\Projects\TileEdit\Palette.pas</Transaction>
   </Transactions>
 </BorlandProject>
