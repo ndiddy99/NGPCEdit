@@ -21,6 +21,8 @@ object Editor: TEditor
     Width = 640
     Height = 608
     OnMouseDown = TilesImageMouseDown
+    OnMouseMove = TilesImageMouseMove
+    OnMouseUp = TilesImageMouseUp
   end
   object ToolBar1: TToolBar
     Left = 0

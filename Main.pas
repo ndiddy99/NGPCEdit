@@ -54,6 +54,10 @@ type
     procedure TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure EditBGClick(Sender: TObject);
+    procedure TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure TilesImageMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
 
   private
     { Private declarations }
@@ -79,7 +83,7 @@ var
   ScalingFactor: Integer;
   NumTilesX, NumTilesY: Integer;
   SelectedX, SelectedY: Integer; //selected TILE not pixel
-  IsDrawing: Boolean;
+  IsDrawing, IsMouseDown: Boolean;
 
 implementation
 
@@ -93,7 +97,9 @@ begin
   NumTilesX := 1;
   NumTilesY := 1;
   IsDrawing := False;
+  IsMouseDown := False;
   SelectButton.Down := True;
+  Color0.Down := True;
   SetLength(TileMap, NumTilesX, NumTilesY);
   SetLength(PaletteIndexes, NumTilesX, NumTilesY);
   TilesImage.Canvas.FillRect(Rect(0,0,TilesImage.Width,TilesImage.Height));
@@ -115,7 +121,7 @@ begin
   PixelY := (Y div ScalingFactor) mod PIXELS_PER_TILE;
   FittedX := (X div ScalingFactor) * ScalingFactor; //make sure x/y vals are "locked to scaled pixel boundaries"
   FittedY := (Y div ScalingFactor) * ScalingFactor;
-  if IsDrawing then
+  if IsDrawing and (X < TilesImage.Width) and (Y < TilesImage.Height) then
   begin
     TileMap[SelectedX,SelectedY][PixelX,PixelY] := CurrColor;
     TilesImage.Canvas.Brush.Color := Palettes[PaletteIndexes[SelectedX,SelectedY]][TileMap[SelectedX,SelectedY][PixelX,PixelY]];
@@ -123,6 +129,38 @@ begin
   end;
   StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(SelectedX) + ' Y: ' + IntToStr(SelectedY);
   PaletteSpin.Value := PaletteIndexes[SelectedX, SelectedY];
+  IsMouseDown := True;
+end;
+
+procedure TEditor.TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+var FittedX, FittedY, PixelX, PixelY: Integer;
+begin
+  if IsMouseDown and (X < TilesImage.Width) and (Y < TilesImage.Height) then
+  begin
+    SelectedX := X div (PIXELS_PER_TILE * ScalingFactor);
+    SelectedY := Y div (PIXELS_PER_TILE * ScalingFactor);
+    PixelX := (X div ScalingFactor) mod PIXELS_PER_TILE;
+    PixelY := (Y div ScalingFactor) mod PIXELS_PER_TILE;
+    FittedX := (X div ScalingFactor) * ScalingFactor; //make sure x/y vals are "locked to scaled pixel boundaries"
+    FittedY := (Y div ScalingFactor) * ScalingFactor;
+    if IsDrawing and (TileMap[SelectedX,SelectedY][PixelX,PixelY] <> CurrColor) then
+    begin
+      TileMap[SelectedX,SelectedY][PixelX,PixelY] := CurrColor;
+      TilesImage.Canvas.Brush.Color := Palettes[PaletteIndexes[SelectedX,SelectedY]][TileMap[SelectedX,SelectedY][PixelX,PixelY]];
+      TilesImage.Canvas.FillRect(Rect(FittedX , FittedY, FittedX + ScalingFactor, FittedY + ScalingFactor));
+    end;
+    StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(SelectedX) + ' Y: ' + IntToStr(SelectedY);
+    PaletteSpin.Value := PaletteIndexes[SelectedX, SelectedY];
+  end;
+end;
+
+
+
+procedure TEditor.TilesImageMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  IsMouseDown := False;
 end;
 
 procedure TEditor.ImportClick(Sender: TObject);
