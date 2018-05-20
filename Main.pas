@@ -34,6 +34,8 @@ type
     ExportPalette1: TMenuItem;
     TilesImage: TImage;
     EditBG: TMenuItem;
+    DarkenButton: TSpeedButton;
+    LightenButton: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure Color0Click(Sender: TObject);
@@ -51,12 +53,15 @@ type
     procedure ExportPalette1Click(Sender: TObject);
     procedure ImportClick(Sender: TObject);
     procedure SetPixelValue(x, y: Integer; value: Byte);
-    procedure TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure EditBGClick(Sender: TObject);
     procedure TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure TilesImageMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure HandleImage(X, Y: Integer);
+    procedure DarkenButtonClick(Sender: TObject);
+    procedure LightenButtonClick(Sender: TObject);
+    procedure TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
 
   private
@@ -76,14 +81,22 @@ const
   MAX_GRID_HEIGHT = 900;
   TAB = #9;
   NEWLINE = #13#10;
+  STATE_DRAW = 0;
+  STATE_SELECT = 1;
+  STATE_DARKEN = 2;
+  STATE_LIGHTEN = 3;
+
 var
   Editor: TEditor;
   CommonInst: TCommon;
   CurrColor: Integer; //current color (1=black, 4=white)
   ScalingFactor: Integer;
+  ToolState: Integer;
   NumTilesX, NumTilesY: Integer;
   SelectedX, SelectedY: Integer; //selected TILE not pixel
-  IsDrawing, IsMouseDown: Boolean;
+  LastLDX, LastLDY: Integer; //coords of last lightened/darkened tile
+  IsMouseDown: Boolean;
+
 
 implementation
 
@@ -96,8 +109,12 @@ begin
   CurrColor := 0;
   NumTilesX := 1;
   NumTilesY := 1;
-  IsDrawing := False;
+  SelectedX := 0;
+  SelectedY := 0;
+  LastLDX := -1;
+  LastLDY := -1;
   IsMouseDown := False;
+  ToolState := STATE_SELECT;
   SelectButton.Down := True;
   Color0.Down := True;
   SetLength(TileMap, NumTilesX, NumTilesY);
@@ -111,24 +128,11 @@ begin
 
 end;
 
+
 procedure TEditor.TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-var FittedX, FittedY, PixelX, PixelY: Integer;
 begin
-  SelectedX := X div (PIXELS_PER_TILE * ScalingFactor);
-  SelectedY := Y div (PIXELS_PER_TILE * ScalingFactor);
-  PixelX := (X div ScalingFactor) mod PIXELS_PER_TILE;
-  PixelY := (Y div ScalingFactor) mod PIXELS_PER_TILE;
-  FittedX := (X div ScalingFactor) * ScalingFactor; //make sure x/y vals are "locked to scaled pixel boundaries"
-  FittedY := (Y div ScalingFactor) * ScalingFactor;
-  if IsDrawing and (X < TilesImage.Width) and (Y < TilesImage.Height) then
-  begin
-    TileMap[SelectedX,SelectedY][PixelX,PixelY] := CurrColor;
-    TilesImage.Canvas.Brush.Color := Palettes[PaletteIndexes[SelectedX,SelectedY]][TileMap[SelectedX,SelectedY][PixelX,PixelY]];
-    TilesImage.Canvas.FillRect(Rect(FittedX , FittedY, FittedX + ScalingFactor, FittedY + ScalingFactor));
-  end;
-  StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(SelectedX) + ' Y: ' + IntToStr(SelectedY);
-  PaletteSpin.Value := PaletteIndexes[SelectedX, SelectedY];
+  HandleImage(X, Y);
   IsMouseDown := True;
 end;
 
@@ -136,31 +140,62 @@ procedure TEditor.TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 var FittedX, FittedY, PixelX, PixelY: Integer;
 begin
-  if IsMouseDown and (X < TilesImage.Width) and (Y < TilesImage.Height) then
+  if IsMouseDown then
+    HandleImage(X, Y);
+end;
+
+procedure TEditor.HandleImage(X: Integer; Y: Integer);
+var FittedX, FittedY, PixelX, PixelY, i, j: Integer;
+begin
+  if (X >= 0) and (Y >= 0) and (X < TilesImage.Width) and (Y < TilesImage.Height) then
   begin
     SelectedX := X div (PIXELS_PER_TILE * ScalingFactor);
     SelectedY := Y div (PIXELS_PER_TILE * ScalingFactor);
-    PixelX := (X div ScalingFactor) mod PIXELS_PER_TILE;
-    PixelY := (Y div ScalingFactor) mod PIXELS_PER_TILE;
-    FittedX := (X div ScalingFactor) * ScalingFactor; //make sure x/y vals are "locked to scaled pixel boundaries"
-    FittedY := (Y div ScalingFactor) * ScalingFactor;
-    if IsDrawing and (TileMap[SelectedX,SelectedY][PixelX,PixelY] <> CurrColor) then
+    if ToolState = STATE_DRAW then
     begin
+      PixelX := (X div ScalingFactor) mod PIXELS_PER_TILE;
+      PixelY := (Y div ScalingFactor) mod PIXELS_PER_TILE;
+      FittedX := (X div ScalingFactor) * ScalingFactor; //make sure x/y vals are "locked to scaled pixel boundaries"
+      FittedY := (Y div ScalingFactor) * ScalingFactor;
       TileMap[SelectedX,SelectedY][PixelX,PixelY] := CurrColor;
       TilesImage.Canvas.Brush.Color := Palettes[PaletteIndexes[SelectedX,SelectedY]][TileMap[SelectedX,SelectedY][PixelX,PixelY]];
       TilesImage.Canvas.FillRect(Rect(FittedX , FittedY, FittedX + ScalingFactor, FittedY + ScalingFactor));
+    end
+    else if (ToolState = STATE_DARKEN) and ((LastLDX <> SelectedX) or (LastLDY <> SelectedY)) then
+    begin
+      for j := 0 to PIXELS_PER_TILE do
+        for i := 0 to PIXELS_PER_TILE do
+        begin
+          if TileMap[SelectedX][SelectedY][i][j] <> 3 then //don't let user darken tile past 2bpp
+            Inc(TileMap[SelectedX][SelectedY][i][j]);
+        end;
+      CommonInst.DrawTile(SelectedX, SelectedY);
+      LastLDX := SelectedX;
+      LastLDY := SelectedY;
+    end
+    else if (ToolState = STATE_LIGHTEN) and ((LastLDX <> SelectedX) or (LastLDY <> SelectedY)) then
+    begin
+      for j := 0 to PIXELS_PER_TILE do
+        for i := 0 to PIXELS_PER_TILE do
+        begin
+          if TileMap[SelectedX][SelectedY][i][j] <> 0 then //don't let user lighten tile past 2bpp
+            Dec(TileMap[SelectedX][SelectedY][i][j]);
+        end;
+      CommonInst.DrawTile(SelectedX, SelectedY);
+      LastLDX := SelectedX;
+      LastLDY := SelectedY;
     end;
     StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(SelectedX) + ' Y: ' + IntToStr(SelectedY);
     PaletteSpin.Value := PaletteIndexes[SelectedX, SelectedY];
   end;
 end;
 
-
-
 procedure TEditor.TilesImageMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
   IsMouseDown := False;
+  LastLDX := -1;
+  LastLDY := -1;
 end;
 
 procedure TEditor.ImportClick(Sender: TObject);
@@ -198,6 +233,11 @@ begin
     end;
   end;
   CommonInst.Redraw;
+end;
+
+procedure TEditor.LightenButtonClick(Sender: TObject);
+begin
+  ToolState := STATE_LIGHTEN;
 end;
 
 //makes TileMap addressable like a 2d array of pixels
@@ -299,14 +339,20 @@ begin
   CurrColor := 3;
 end;
 
+procedure TEditor.DarkenButtonClick(Sender: TObject);
+var i, j: Integer;
+begin
+  ToolState := STATE_DARKEN;
+end;
+
 procedure TEditor.DrawButtonClick(Sender: TObject);
 begin
-  IsDrawing := True;
+  ToolState := STATE_DRAW;
 end;
 
 procedure TEditor.SelectButtonClick(Sender: TObject);
 begin
-  IsDrawing := False;
+  ToolState := STATE_SELECT;
 end;
 
 procedure TEditor.EditClick(Sender: TObject);
@@ -381,7 +427,11 @@ begin
     AssignFile(ExportFile, SaveDialog.FileName);
     SaveDialog.Free;
     ReWrite(ExportFile);
-    WriteLn(ExportFile,'const u16 palettes[15][3] = {');
+    WriteLn(ExportFile, 'const u16 BGColor = RGB(' +
+     IntToStr(GetRValue(ColorToRGB(Palettes[0][0])) div 16) + ', ' +
+     IntToStr(GetGValue(ColorToRGB(Palettes[0][0])) div 16) + ', ' +
+     IntToStr(GetBValue(ColorToRGB(Palettes[0][0])) div 16) + ');');
+    WriteLn(ExportFile,'const u16 Palettes[16][3] = {');
     for i := 0 to 15 do
     begin
         if i <> 0 then
@@ -401,7 +451,7 @@ begin
           IntToStr(GetBValue(ColorToRGB(Color)) div 16) + ')}');
     end;
     WriteLn(ExportFile, NEWLINE + '};');
-    WriteLn(ExportFile, 'const u8 paletteIndexes[' + IntToStr(NumTilesX) + '][' + IntToStr(NumTilesY) + '] = {');
+    WriteLn(ExportFile, 'const u8 paletteIndexes[' + IntToStr(NumTilesY) + '][' + IntToStr(NumTilesX) + '] = {');
     for j := 0 to NumTilesY - 1 do
     begin
       Write(ExportFile, TAB + '{');
