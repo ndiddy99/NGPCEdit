@@ -10,7 +10,6 @@ type
   TEditor = class(TForm)
     MainMenu1: TMainMenu;
     FileMenu: TMenuItem;
-    Exit1: TMenuItem;
     ToolBar1: TToolBar;
     Color0: TSpeedButton;
     Color1: TSpeedButton;
@@ -36,8 +35,8 @@ type
     EditBG: TMenuItem;
     DarkenButton: TSpeedButton;
     LightenButton: TSpeedButton;
+    PaletteButton: TSpeedButton;
     procedure FormCreate(Sender: TObject);
-    procedure Exit1Click(Sender: TObject);
     procedure Color0Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
     procedure Color2Click(Sender: TObject);
@@ -48,7 +47,6 @@ type
     procedure ExportClick(Sender: TObject);
     procedure DrawButtonClick(Sender: TObject);
     procedure SelectButtonClick(Sender: TObject);
-    procedure PaletteSpinChange(Sender: TObject);
     procedure EditClick(Sender: TObject);
     procedure ExportPalette1Click(Sender: TObject);
     procedure ImportClick(Sender: TObject);
@@ -63,6 +61,7 @@ type
     procedure LightenButtonClick(Sender: TObject);
     procedure TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure PaletteButtonClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -75,16 +74,17 @@ const
   GRID_PADDING = 10; //num of pixels to pad out grid by
   WINDOW_X_PADDING = 40;
   WINDOW_Y_PADDING = 120;
-  MIN_WINDOW_WIDTH = 725;
+  MIN_WINDOW_WIDTH = 760;
   MIN_WINDOW_HEIGHT = 379;
   MAX_GRID_WIDTH = 1500;
-  MAX_GRID_HEIGHT = 900;
+  MAX_GRID_HEIGHT = 1000;
   TAB = #9;
   NEWLINE = #13#10;
   STATE_DRAW = 0;
   STATE_SELECT = 1;
   STATE_DARKEN = 2;
   STATE_LIGHTEN = 3;
+  STATE_PALETTE = 4;
 
 var
   Editor: TEditor;
@@ -129,6 +129,7 @@ begin
 end;
 
 
+
 procedure TEditor.TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
@@ -138,7 +139,6 @@ end;
 
 procedure TEditor.TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
-var FittedX, FittedY, PixelX, PixelY: Integer;
 begin
   if IsMouseDown then
     HandleImage(X, Y);
@@ -184,9 +184,15 @@ begin
       CommonInst.DrawTile(SelectedX, SelectedY);
       LastLDX := SelectedX;
       LastLDY := SelectedY;
+    end
+    else if ToolState = STATE_PALETTE then
+    begin
+      PaletteIndexes[SelectedX][SelectedY] := PaletteSpin.Value;
+      CommonInst.DrawTile(SelectedX, SelectedY);
     end;
     StatusBar1.Panels[0].Text := 'Selected Tile X: ' + IntToStr(SelectedX) + ' Y: ' + IntToStr(SelectedY);
-    PaletteSpin.Value := PaletteIndexes[SelectedX, SelectedY];
+    if ToolState <> STATE_PALETTE then
+      PaletteSpin.Value := PaletteIndexes[SelectedX, SelectedY];
   end;
 end;
 
@@ -246,10 +252,9 @@ begin
   TileMap[x div PIXELS_PER_TILE][y div PIXELS_PER_TILE][x mod PIXELS_PER_TILE][y mod PIXELS_PER_TILE] := value;
 end;
 
-procedure TEditor.PaletteSpinChange(Sender: TObject);
+procedure TEditor.PaletteButtonClick(Sender: TObject);
 begin
-  PaletteIndexes[SelectedX][SelectedY] := PaletteSpin.Value;
-  CommonInst.Redraw;
+  ToolState := STATE_PALETTE;
 end;
 
 procedure TEditor.ScalingSpinChange(Sender: TObject);
@@ -322,25 +327,32 @@ end;
 procedure TEditor.Color0Click(Sender: TObject);
 begin
   CurrColor := 0;
+  ToolState := STATE_DRAW;
+  DrawButton.Down := True;
 end;
 
 procedure TEditor.Color1Click(Sender: TObject);
 begin
   CurrColor := 1;
+  ToolState := STATE_DRAW;
+  DrawButton.Down := True;
 end;
 
 procedure TEditor.Color2Click(Sender: TObject);
 begin
   CurrColor := 2;
+  ToolState := STATE_DRAW;
+  DrawButton.Down := True;
 end;
 
 procedure TEditor.Color3Click(Sender: TObject);
 begin
   CurrColor := 3;
+  ToolState := STATE_DRAW;
+  DrawButton.Down := True;
 end;
 
 procedure TEditor.DarkenButtonClick(Sender: TObject);
-var i, j: Integer;
 begin
   ToolState := STATE_DARKEN;
 end;
@@ -360,10 +372,6 @@ begin
   ColorPicker.Show;
 end;
 
-procedure TEditor.Exit1Click(Sender: TObject);
-begin
-  Editor.Close;
-end;
 procedure TEditor.ExportClick(Sender: TObject);
 var
   SaveDialog: TSaveDialog;

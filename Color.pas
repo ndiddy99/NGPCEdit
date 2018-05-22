@@ -27,6 +27,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure PaletteSpinChange(Sender: TObject);
     procedure ColorSpinChange(Sender: TObject);
+    procedure HandleColorChange;
   private
     { Private declarations }
   public
@@ -35,6 +36,7 @@ type
 
 var
   ColorPicker: TColorPicker;
+  CommonInst: TCommon;
 
 implementation
 
@@ -43,10 +45,7 @@ implementation
 
 procedure TColorPicker.BlueSpinChange(Sender: TObject);
 begin
-  //multiply by 16 because ngpc palette vals are from 0-15 while delphi vals are from 0-255
-  Image1.Canvas.Brush.Color := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
-  Palettes[PaletteSpin.Value][ColorSpin.Value] := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
-  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+  HandleColorChange();
 end;
 
 procedure TColorPicker.ColorSpinChange(Sender: TObject);
@@ -58,6 +57,7 @@ begin
   BlueSpin.Value := GetBValue(ColorToRGB(color)) div 16;
   Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
   Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+  CommonInst := Common.TCommon.Create;
 end;
 
 procedure TColorPicker.FormCreate(Sender: TObject);
@@ -75,9 +75,7 @@ end;
 
 procedure TColorPicker.GreenSpinChange(Sender: TObject);
 begin
-  Image1.Canvas.Brush.Color := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
-  Palettes[PaletteSpin.Value][ColorSpin.Value] := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
-  Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+  HandleColorChange();
 end;
 
 procedure TColorPicker.PaletteSpinChange(Sender: TObject);
@@ -93,9 +91,16 @@ end;
 
 procedure TColorPicker.RedSpinChange(Sender: TObject);
 begin
+  HandleColorChange();
+end;
+
+procedure TColorPicker.HandleColorChange();
+begin
+  //multiply by 16 because ngpc palette vals are from 0-15 while delphi vals are from 0-255
   Image1.Canvas.Brush.Color := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
   Palettes[PaletteSpin.Value][ColorSpin.Value] := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
   Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
+  CommonInst.Redraw;
 end;
 
 end.
