@@ -37,6 +37,7 @@ type
 var
   ColorPicker: TColorPicker;
   CommonInst: TCommon;
+  ShouldRedraw: Boolean; //keeps cascading redraws from ruining performance
 
 implementation
 
@@ -52,9 +53,11 @@ procedure TColorPicker.ColorSpinChange(Sender: TObject);
 var color: TColor;
 begin
   color := Palettes[PaletteSpin.Value][ColorSpin.Value];
+  ShouldRedraw := False; //don't need to redraw image when you're just changing which color to display
   RedSpin.Value := GetRValue(ColorToRGB(color)) div 16;
   GreenSpin.Value := GetGValue(ColorToRGB(color)) div 16;
   BlueSpin.Value := GetBValue(ColorToRGB(color)) div 16;
+  ShouldRedraw := True;
   Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
   Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
 end;
@@ -65,9 +68,11 @@ begin
   PaletteSpin.Value := 0;
   ColorSpin.Value := 1;
   color := Palettes[PaletteSpin.Value][ColorSpin.Value];
+  ShouldRedraw := False; //don't need to redraw image when you create the form
   RedSpin.Value := GetRValue(ColorToRGB(color)) div 16;
   GreenSpin.Value := GetGValue(ColorToRGB(color)) div 16;
   BlueSpin.Value := GetBValue(ColorToRGB(color)) div 16;
+  ShouldRedraw := True;
   Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
   Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
 end;
@@ -81,9 +86,11 @@ procedure TColorPicker.PaletteSpinChange(Sender: TObject);
 var color: TColor;
 begin
   color := Palettes[PaletteSpin.Value][ColorSpin.Value];
+  ShouldRedraw := False; //don't need to redraw image when you're just changing the palette
   RedSpin.Value := GetRValue(ColorToRGB(color)) div 16;
   GreenSpin.Value := GetGValue(ColorToRGB(color)) div 16;
   BlueSpin.Value := GetBValue(ColorToRGB(color)) div 16;
+  ShouldRedraw := True;
   Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
   Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
 end;
@@ -99,7 +106,8 @@ begin
   Image1.Canvas.Brush.Color := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
   Palettes[PaletteSpin.Value][ColorSpin.Value] := RGB(RedSpin.Value*16,GreenSpin.Value*16,BlueSpin.Value*16);
   Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
-  CommonInst.Redraw;
+  if ShouldRedraw then
+    CommonInst.Redraw;
 end;
 
 end.
