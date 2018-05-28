@@ -282,6 +282,9 @@ begin
         ReadLn(LoadFile, temp);
         SetPixelValue(i, j, temp);
       end;
+    for j := 0 to NumTilesY - 1 do
+      for i := 0 to NumTilesX - 1 do
+        ReadLn(LoadFile, PaletteIndexes[i][j]);
     CommonInst.Redraw;
     CloseFile(LoadFile);
   end
@@ -329,6 +332,9 @@ begin
     for j := 0 to (NumTilesY * PIXELS_PER_TILE) - 1 do
       for i := 0 to (NumTilesX * PIXELS_PER_TILE) - 1 do
         WriteLn(SaveFile, IntToStr(GetPixelValue(i, j)));
+    for j := 0 to NumTilesY - 1 do
+      for i := 0 to NumTilesX - 1 do
+        WriteLn(SaveFile, IntToStr(PaletteIndexes[i][j]));
     CloseFile(SaveFile);
   end
   else
