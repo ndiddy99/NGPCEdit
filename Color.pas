@@ -57,7 +57,6 @@ begin
   BlueSpin.Value := GetBValue(ColorToRGB(color)) div 16;
   Image1.Canvas.Brush.Color := Palettes[PaletteSpin.Value][ColorSpin.Value];
   Image1.Canvas.FillRect(Rect(0,0,Image1.Width,Image1.Height));
-  CommonInst := Common.TCommon.Create;
 end;
 
 procedure TColorPicker.FormCreate(Sender: TObject);

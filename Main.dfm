@@ -31,7 +31,6 @@ object Editor: TEditor
     Height = 25
     Caption = 'ToolBar1'
     TabOrder = 0
-    ExplicitWidth = 580
     object DrawButton: TSpeedButton
       Left = 0
       Top = 0
@@ -475,7 +474,6 @@ object Editor: TEditor
         Text = 'Selected Tile X: 0 Y: 0'
         Width = 50
       end>
-    ExplicitWidth = 580
   end
   object MainMenu1: TMainMenu
     Left = 480
@@ -485,6 +483,14 @@ object Editor: TEditor
       object Import: TMenuItem
         Caption = 'Import Grayscale BMP'
         OnClick = ImportClick
+      end
+      object LoadImage: TMenuItem
+        Caption = 'Load Image'
+        OnClick = LoadImageClick
+      end
+      object SaveImage: TMenuItem
+        Caption = 'Save Image'
+        OnClick = SaveImageClick
       end
       object Export: TMenuItem
         Caption = 'Export Image'

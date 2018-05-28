@@ -38,7 +38,6 @@ implementation
 procedure TBGColor.FormCreate(Sender: TObject);
 var color: TColor;
 begin
-  CommonInst := Common.TCommon.Create;
   color := Palettes[0][0];
   RedSpin.Value := GetRValue(ColorToRGB(color)) div 16;
   GreenSpin.Value := GetGValue(ColorToRGB(color)) div 16;

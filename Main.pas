@@ -36,6 +36,8 @@ type
     DarkenButton: TSpeedButton;
     LightenButton: TSpeedButton;
     PaletteButton: TSpeedButton;
+    SaveImage: TMenuItem;
+    LoadImage: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Color0Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
@@ -51,6 +53,7 @@ type
     procedure ExportPalette1Click(Sender: TObject);
     procedure ImportClick(Sender: TObject);
     procedure SetPixelValue(x, y: Integer; value: Byte);
+    function GetPixelValue(x, y: Integer): Byte;
     procedure EditBGClick(Sender: TObject);
     procedure TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
@@ -62,6 +65,8 @@ type
     procedure TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure PaletteButtonClick(Sender: TObject);
+    procedure SaveImageClick(Sender: TObject);
+    procedure LoadImageClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -71,6 +76,8 @@ type
 const
   DEFAULT_COLORS : array [0..3] of TColor = (clWhite, clLtGray, clDkGray, clBlack);
   PIXELS_PER_TILE = 8;
+  COLORS_PER_TILE = 4;
+  NUM_PALETTES = 16;
   GRID_PADDING = 10; //num of pixels to pad out grid by
   WINDOW_X_PADDING = 40;
   WINDOW_Y_PADDING = 120;
@@ -246,15 +253,86 @@ begin
   ToolState := STATE_LIGHTEN;
 end;
 
+procedure TEditor.LoadImageClick(Sender: TObject);
+var
+  OpenDialog: TOpenDialog;
+  LoadFile: TextFile;
+  i, j, temp: Integer;
+begin
+  OpenDialog := TOpenDialog.Create(self);
+  OpenDialog.Title := 'Enter a filename to load from';
+  OpenDialog.Filter := 'NGPCEdit file|*.zongo';
+  OpenDialog.DefaultExt := 'zongo';
+  OpenDialog.FilterIndex := 1;
+  if OpenDialog.Execute then
+  begin
+    AssignFile(LoadFile, OpenDialog.FileName);
+    OpenDialog.Free;
+    Reset(LoadFile);
+    ReadLn(LoadFile, temp); //want to do the value instead of changing
+    XSpin.Value := temp;
+    ReadLn(LoadFile, temp); //variable names directly so the onchange event runs
+    YSpin.Value := temp;
+    for i := 0 to NUM_PALETTES - 1 do
+      for j := 0 to COLORS_PER_TILE - 1 do
+        ReadLn(LoadFile, Palettes[i][j]);
+    for j := 0 to (NumTilesY * PIXELS_PER_TILE) - 1 do
+      for i := 0 to (NumTilesX * PIXELS_PER_TILE) - 1 do
+      begin
+        ReadLn(LoadFile, temp);
+        SetPixelValue(i, j, temp);
+      end;
+    CommonInst.Redraw;
+    CloseFile(LoadFile);
+  end
+  else
+    OpenDialog.Free;
+end;
+
 //makes TileMap addressable like a 2d array of pixels
 procedure TEditor.SetPixelValue(x, y: Integer; value: Byte);
 begin
   TileMap[x div PIXELS_PER_TILE][y div PIXELS_PER_TILE][x mod PIXELS_PER_TILE][y mod PIXELS_PER_TILE] := value;
 end;
 
+function TEditor.GetPixelValue(x: Integer; y: Integer): Byte;
+begin
+  Result := TileMap[x div PIXELS_PER_TILE][y div PIXELS_PER_TILE][x mod PIXELS_PER_TILE][y mod PIXELS_PER_TILE];
+end;
+
 procedure TEditor.PaletteButtonClick(Sender: TObject);
 begin
   ToolState := STATE_PALETTE;
+end;
+
+procedure TEditor.SaveImageClick(Sender: TObject);
+var
+  SaveDialog: TSaveDialog;
+  SaveFile: TextFile;
+  i, j: Integer;
+begin
+  SaveDialog := TSaveDialog.Create(self);
+  SaveDialog.Title := 'Enter a filename to save to';
+  SaveDialog.Filter := 'NGPCEdit file|*.zongo';
+  SaveDialog.DefaultExt := 'zongo';
+  SaveDialog.FilterIndex := 1;
+  if SaveDialog.Execute then
+  begin
+    AssignFile(SaveFile, SaveDialog.FileName);
+    SaveDialog.Free;
+    ReWrite(SaveFile);
+    Writeln(SaveFile, IntToStr(NumTilesX));
+    Writeln(SaveFile, IntToStr(NumTilesY));
+    for i := 0 to NUM_PALETTES - 1 do
+      for j := 0 to COLORS_PER_TILE - 1 do
+        WriteLn(SaveFile, IntToStr(Palettes[i][j]));
+    for j := 0 to (NumTilesY * PIXELS_PER_TILE) - 1 do
+      for i := 0 to (NumTilesX * PIXELS_PER_TILE) - 1 do
+        WriteLn(SaveFile, IntToStr(GetPixelValue(i, j)));
+    CloseFile(SaveFile);
+  end
+  else
+    SaveDialog.Free;
 end;
 
 procedure TEditor.ScalingSpinChange(Sender: TObject);
