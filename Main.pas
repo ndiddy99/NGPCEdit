@@ -38,6 +38,8 @@ type
     PaletteButton: TSpeedButton;
     SaveImage: TMenuItem;
     LoadImage: TMenuItem;
+    ViewMenu: TMenuItem;
+    ShowGrid: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Color0Click(Sender: TObject);
     procedure Color1Click(Sender: TObject);
@@ -67,6 +69,7 @@ type
     procedure PaletteButtonClick(Sender: TObject);
     procedure SaveImageClick(Sender: TObject);
     procedure LoadImageClick(Sender: TObject);
+    procedure ShowGridClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -140,7 +143,7 @@ end;
 procedure TEditor.TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  HandleImage(X, Y);
+  HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
   IsMouseDown := True;
 end;
 
@@ -148,7 +151,9 @@ procedure TEditor.TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 begin
   if IsMouseDown then
-    HandleImage(X, Y);
+  begin
+    HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
+  end;
 end;
 
 procedure TEditor.HandleImage(X: Integer; Y: Integer);
@@ -162,8 +167,9 @@ begin
     begin
       PixelX := (X div ScalingFactor) mod PIXELS_PER_TILE;
       PixelY := (Y div ScalingFactor) mod PIXELS_PER_TILE;
-      FittedX := (X div ScalingFactor) * ScalingFactor; //make sure x/y vals are "locked to scaled pixel boundaries"
-      FittedY := (Y div ScalingFactor) * ScalingFactor;
+      //make sure x/y vals are "locked to scaled pixel boundaries"
+      FittedX := (X div ScalingFactor) * ScalingFactor + SelectedX;
+      FittedY := (Y div ScalingFactor) * ScalingFactor + SelectedY;
       TileMap[SelectedX,SelectedY][PixelX,PixelY] := CurrColor;
       TilesImage.Canvas.Brush.Color := Palettes[PaletteIndexes[SelectedX,SelectedY]][TileMap[SelectedX,SelectedY][PixelX,PixelY]];
       TilesImage.Canvas.FillRect(Rect(FittedX , FittedY, FittedX + ScalingFactor, FittedY + ScalingFactor));
@@ -298,6 +304,21 @@ begin
   TileMap[x div PIXELS_PER_TILE][y div PIXELS_PER_TILE][x mod PIXELS_PER_TILE][y mod PIXELS_PER_TILE] := value;
 end;
 
+procedure TEditor.ShowGridClick(Sender: TObject);
+begin
+  if ShowGrid.Checked then
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor + NumTilesX;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor + NumTilesY;
+  end
+  else
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor;
+  end;
+  CommonInst.Redraw;
+end;
+
 function TEditor.GetPixelValue(x: Integer; y: Integer): Byte;
 begin
   Result := TileMap[x div PIXELS_PER_TILE][y div PIXELS_PER_TILE][x mod PIXELS_PER_TILE][y mod PIXELS_PER_TILE];
@@ -344,8 +365,16 @@ end;
 procedure TEditor.ScalingSpinChange(Sender: TObject);
 begin
   ScalingFactor := ScalingSpin.Value;
-  TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor;
-  TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor;
+    if ShowGrid.Checked then
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor + NumTilesX;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor + NumTilesY;
+  end
+  else
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor;
+  end;
   CommonInst.Redraw;
 end;
 
@@ -367,12 +396,16 @@ begin
   end;
   NumTilesX := XSpin.Value;
   SetLength(PaletteIndexes, NumTilesX, NumTilesY);
-  if NumTilesX*PIXELS_PER_TILE*ScalingFactor < MAX_GRID_WIDTH then
-    TilesImage.Width := NumTilesX*PIXELS_PER_TILE*ScalingFactor
+  if ShowGrid.Checked then
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor + NumTilesX;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor + NumTilesY;
+  end
   else
-    TilesImage.Width := MAX_GRID_WIDTH;
-  if Self.WindowState <> wsMaximized then
-    Editor.Width := Max(TilesImage.Width + WINDOW_X_PADDING, MIN_WINDOW_WIDTH);
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor;
+  end;
   CommonInst.Redraw;
 end;
 
@@ -394,12 +427,16 @@ begin
   end;
   NumTilesY := YSpin.Value;
   SetLength(PaletteIndexes, NumTilesX, NumTilesY);
-  if NumTilesY*PIXELS_PER_TILE*ScalingFactor < MAX_GRID_HEIGHT then
-    TilesImage.Height := NumTilesY*PIXELS_PER_TILE*ScalingFactor
+  if ShowGrid.Checked then
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor + NumTilesX;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor + NumTilesY;
+  end
   else
-    TilesImage.Height := MAX_GRID_HEIGHT;
-  if Self.WindowState <> wsMaximized then
-    Editor.Height := Max(TilesImage.Height + WINDOW_Y_PADDING, MIN_WINDOW_HEIGHT);
+  begin
+    TilesImage.Width := NumTilesX * PIXELS_PER_TILE * ScalingFactor;
+    TilesImage.Height := NumTilesY * PIXELS_PER_TILE * ScalingFactor;
+  end;
   CommonInst.Redraw;
 end;
 

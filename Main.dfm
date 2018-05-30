@@ -18,8 +18,8 @@ object Editor: TEditor
   object TilesImage: TImage
     Left = 8
     Top = 28
-    Width = 640
-    Height = 608
+    Width = 2000
+    Height = 2000
     OnMouseDown = TilesImageMouseDown
     OnMouseMove = TilesImageMouseMove
     OnMouseUp = TilesImageMouseUp
@@ -510,6 +510,15 @@ object Editor: TEditor
       object EditBG: TMenuItem
         Caption = 'Edit BG Color'
         OnClick = EditBGClick
+      end
+    end
+    object ViewMenu: TMenuItem
+      Caption = 'View'
+      object ShowGrid: TMenuItem
+        AutoCheck = True
+        Caption = 'Show Grid'
+        Checked = True
+        OnClick = ShowGridClick
       end
     end
   end
