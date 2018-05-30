@@ -143,18 +143,26 @@ end;
 procedure TEditor.TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  if (X < TilesImage.Width) and (Y < TilesImage.Height) then
-    HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
+  if ShowGrid.Checked then
+  begin
+    if (X < TilesImage.Width) and (Y < TilesImage.Height) then
+      HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
+  end
+  else
+    HandleImage(X, Y);
   IsMouseDown := True;
 end;
 
 procedure TEditor.TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 begin
-  if IsMouseDown and (X < TilesImage.Width) and (Y < TilesImage.Height) then
+  if ShowGrid.Checked and IsMouseDown then
   begin
-    HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
-  end;
+    if (X < TilesImage.Width) and (Y < TilesImage.Height) then
+      HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
+  end
+  else if IsMouseDown then
+    HandleImage(X, Y);
 end;
 
 procedure TEditor.HandleImage(X: Integer; Y: Integer);
@@ -169,8 +177,16 @@ begin
       PixelX := (X div ScalingFactor) mod PIXELS_PER_TILE;
       PixelY := (Y div ScalingFactor) mod PIXELS_PER_TILE;
       //make sure x/y vals are "locked to scaled pixel boundaries"
-      FittedX := (X div ScalingFactor) * ScalingFactor + SelectedX;
-      FittedY := (Y div ScalingFactor) * ScalingFactor + SelectedY;
+      if ShowGrid.Checked then
+      begin
+        FittedX := (X div ScalingFactor) * ScalingFactor + SelectedX;
+        FittedY := (Y div ScalingFactor) * ScalingFactor + SelectedY;
+      end
+      else
+      begin
+        FittedX := (X div ScalingFactor) * ScalingFactor;
+        FittedY := (Y div ScalingFactor) * ScalingFactor;
+      end;
       TileMap[SelectedX,SelectedY][PixelX,PixelY] := CurrColor;
       TilesImage.Canvas.Brush.Color := Palettes[PaletteIndexes[SelectedX,SelectedY]][TileMap[SelectedX,SelectedY][PixelX,PixelY]];
       TilesImage.Canvas.FillRect(Rect(FittedX , FittedY, FittedX + ScalingFactor, FittedY + ScalingFactor));
