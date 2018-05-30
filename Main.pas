@@ -143,14 +143,15 @@ end;
 procedure TEditor.TilesImageMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
+  if (X < TilesImage.Width) and (Y < TilesImage.Height) then
+    HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
   IsMouseDown := True;
 end;
 
 procedure TEditor.TilesImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 begin
-  if IsMouseDown then
+  if IsMouseDown and (X < TilesImage.Width) and (Y < TilesImage.Height) then
   begin
     HandleImage(X - X div (PIXELS_PER_TILE * ScalingFactor), Y - Y div (PIXELS_PER_TILE * ScalingFactor));
   end;
